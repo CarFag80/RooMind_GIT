@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { memo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, RefreshControl } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Users, Crown, CreditCard as Edit3, Building, Hash, Calendar, ArrowRight, Star } from 'lucide-react-native';
+import { Chrome as Home, Users, Crown, CreditCard as Edit3, Building, Hash, ArrowRight } from 'lucide-react-native';
 import TripleRoomIcon from '@/components/TripleRoomIcon';
 import { RoomStorage } from '@/services/storage';
 import { Room } from '@/types/room';
@@ -13,27 +12,188 @@ import StarRating from '@/components/StarRating';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 // Memoized components for better performance
-const RoomTypeIcon = memo(({ roomType }: { roomType: string }) => {
+const RoomTypeIcon = React.memo(({ roomType }: { roomType: string }) => {
+  const iconProps = { size: 20, color: "#6750A4" };
+  
   switch (roomType) {
     case 'single':
-      return <Home size={20} color="#6750A4" />;
+      return <Home {...iconProps} />;
     case 'double':
-      return <Users size={20} color="#6750A4" />;
+      return <Users {...iconProps} />;
     case 'triple':
-      return <TripleRoomIcon size={20} color="#6750A4" />;
+      return <TripleRoomIcon {...iconProps} />;
     case 'suite':
-      return <Crown size={20} color="#6750A4" />;
+      return <Crown {...iconProps} />;
     default:
-      return <Home size={20} color="#6750A4" />;
+      return <Home {...iconProps} />;
   }
 });
 
-const StatsCard = memo(({ number, label }: { number: number; label: string }) => (
+const StatsCard = React.memo(({ number, label }: { number: number; label: string }) => (
   <View style={styles.statsCard}>
     <Text style={styles.statsNumber}>{number}</Text>
     <Text style={styles.statsLabel}>{label}</Text>
   </View>
 ));
+
+// Memoized room card component
+const RoomCard = React.memo(({ 
+  room, 
+  onEdit 
+}: { 
+  room: Room; 
+  onEdit: (room: Room) => void;
+}) => {
+  const { checkIn, checkOut } = useMemo(() => getDateRange(room), [room]);
+  const shouldShowRating = useMemo(() => checkShouldShowRating(room), [room]);
+  
+  const handleEdit = useCallback(() => {
+    onEdit(room);
+  }, [room, onEdit]);
+
+  return (
+    <View style={styles.roomCard}>
+      <View style={styles.roomHeader}>
+        <View style={styles.roomIconContainer}>
+          <RoomTypeIcon roomType={room.roomType || 'single'} />
+        </View>
+        <View style={styles.roomActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleEdit}
+            activeOpacity={0.7}>
+            <Edit3 size={16} color="#625B71" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      <View style={styles.roomMainInfo}>
+        <View style={styles.roomNumberContainer}>
+          <Hash size={18} color="#6750A4" />
+          <Text style={styles.roomNumber} numberOfLines={1} ellipsizeMode="tail">
+            Camera {room.roomNumber}
+          </Text>
+        </View>
+        
+        <View style={styles.floorContainer}>
+          <Building size={18} color="#625B71" />
+          <Text style={styles.floorText} numberOfLines={1} ellipsizeMode="tail">
+            Piano {room.floor}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.hotelInfo}>
+        <Text style={styles.hotelName}>{room.hotelName}</Text>
+        <Text style={styles.hotelAddress} numberOfLines={2}>
+          {room.hotelAddress}
+        </Text>
+      </View>
+
+      {(checkIn || checkOut) && (
+        <View style={styles.dateInfo}>
+          <View style={styles.dateContent}>
+            {checkIn && checkOut ? (
+              <View style={styles.dateRange}>
+                <Text style={styles.dateText}>{formatDate(checkIn)}</Text>
+                <ArrowRight size={12} color="#6750A4" />
+                <Text style={styles.dateText}>{formatDate(checkOut)}</Text>
+              </View>
+            ) : checkIn ? (
+              <Text style={styles.dateText}>Check-in: {formatDate(checkIn)}</Text>
+            ) : checkOut ? (
+              <Text style={styles.dateText}>Check-out: {formatDate(checkOut)}</Text>
+            ) : null}
+          </View>
+        </View>
+      )}
+
+      {room.pricePerNight && room.currency && (
+        <View style={styles.priceInfo}>
+          <Text style={styles.priceLabel}>Prezzo per notte</Text>
+          <Text style={styles.priceAmount}>
+            {room.pricePerNight.toFixed(2)} {getCurrencySymbol(room.currency)}
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.bottomRow}>
+        <View style={styles.roomTypeTag}>
+          <Text style={styles.roomTypeText}>
+            {getRoomTypeLabel(room.roomType || 'single')}
+          </Text>
+        </View>
+        
+        {shouldShowRating && (
+          <View style={styles.ratingContainer}>
+            <StarRating
+              rating={room.rating || 0}
+              readonly={true}
+              size={14}
+              color="#FFD700"
+              emptyColor="#E0E0E0"
+            />
+          </View>
+        )}
+      </View>
+    </View>
+  );
+});
+
+// Utility functions moved outside component for better performance
+const getDateRange = (room: Room): { checkIn?: Date, checkOut?: Date } => {
+  // Handle legacy data migration
+  if ('date' in room && room.date) {
+    return { checkIn: new Date(room.date) };
+  }
+  
+  return {
+    checkIn: room.checkInDate ? new Date(room.checkInDate) : undefined,
+    checkOut: room.checkOutDate ? new Date(room.checkOutDate) : undefined
+  };
+};
+
+const checkShouldShowRating = (room: Room): boolean => {
+  const { checkOut } = getDateRange(room);
+  if (!checkOut) return false;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const checkoutDate = new Date(checkOut);
+  checkoutDate.setHours(0, 0, 0, 0);
+  
+  return checkoutDate < today;
+};
+
+const getRoomTypeLabel = (roomType: string) => {
+  const labels = {
+    single: 'Singola',
+    double: 'Doppia',
+    triple: 'Tripla',
+    suite: 'Suite'
+  };
+  return labels[roomType as keyof typeof labels] || 'Standard';
+};
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('it-IT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+};
+
+const getCurrencySymbol = (currencyCode: string) => {
+  const symbols = {
+    EUR: '€',
+    USD: '$',
+    GBP: '£',
+    CHF: 'CHF',
+    JPY: '¥'
+  };
+  return symbols[currencyCode as keyof typeof symbols] || '€';
+};
 
 export default function RoomsScreen() {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -44,156 +204,56 @@ export default function RoomsScreen() {
   
   // Modal states
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState({
-    title: '',
-    message: '',
+  const [modalContent, setModalContent] = useState({ 
+    title: '', 
+    message: '', 
     icon: null as React.ReactNode,
-    onClose: () => {}
+    onClose: () => setModalVisible(false)
   });
 
-  const loadRooms = async () => {
+  // Memoized calculations for better performance
+  const uniqueHotels = useMemo(() => 
+    new Set(rooms.map(r => r.hotelName)).size, 
+    [rooms]
+  );
+
+  const loadRooms = useCallback(async () => {
     try {
       const roomsData = await RoomStorage.getRooms();
       setRooms(roomsData || []);
     } catch (error) {
-      console.error('Errore nel caricamento delle camere:', error);
+      console.error('Error loading rooms:', error);
       setRooms([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadRooms();
     setRefreshing(false);
+  }, [loadRooms]);
+
+  const editRoom = useCallback((room: Room) => {
+    router.push({
+      pathname: '/edit-room',
+      params: { roomId: room.id }
+    });
+  }, []);
+
+  const handlePWAInstall = useCallback(() => {
+    setShowPWAPrompt(false);
+  }, []);
+
+  const handlePWADismiss = useCallback(() => {
+    setShowPWAPrompt(false);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       loadRooms();
-    }, [])
-  );
-
-  const deleteRoom = useCallback(async (id: string, roomName: string) => {
-    console.log('🏠 Richiesta eliminazione camera:', roomName, 'ID:', id);
-    
-    setModalContent({
-      title: 'Conferma Eliminazione',
-      message: `Eliminare definitivamente la camera "${roomName}"?\n\nQuesta azione non può essere annullata.`,
-      icon: <Edit3 size={24} color="#F44336" />,
-      onClose: async () => {
-        setModalVisible(false);
-        try {
-          const success = await RoomStorage.deleteRoom(id);
-          
-          if (success) {
-            await loadRooms();
-            setTimeout(() => {
-              setModalContent({
-                title: 'Camera Eliminata',
-                message: 'La camera è stata eliminata con successo.',
-                icon: <Edit3 size={24} color="#4CAF50" />,
-                onClose: () => setModalVisible(false)
-              });
-              setModalVisible(true);
-            }, 100);
-          } else {
-            setModalContent({
-              title: 'Camera Non Trovata',
-              message: 'La camera richiesta non è stata trovata.',
-              icon: <Edit3 size={24} color="#FF9800" />,
-              onClose: () => setModalVisible(false)
-            });
-            setModalVisible(true);
-          }
-        } catch (error) {
-          console.error('💥 Errore eliminazione:', error);
-          setModalContent({
-            title: 'Errore di Eliminazione',
-            message: 'Si è verificato un errore durante l\'eliminazione. Riprova.',
-            icon: <Edit3 size={24} color="#F44336" />,
-            onClose: () => setModalVisible(false)
-          });
-          setModalVisible(true);
-        }
-      }
-    });
-    setModalVisible(true);
-  }, [loadRooms]);
-
-  const editRoom = (room: Room) => {
-    // Use push instead of navigate for better performance
-    router.push({
-      pathname: '/edit-room',
-      params: { roomId: room.id }
-    });
-  };
-
-  const getRoomTypeLabel = (roomType: string) => {
-    switch (roomType) {
-      case 'single':
-        return 'Singola';
-      case 'double':
-        return 'Doppia';
-      case 'triple':
-        return 'Tripla';
-      case 'suite':
-        return 'Suite';
-      default:
-        return 'Standard';
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const getDateRange = (room: Room): { checkIn?: Date, checkOut?: Date } => {
-    // Handle legacy data migration
-    if ('date' in room && room.date) {
-      return { checkIn: new Date(room.date) };
-    }
-    
-    return {
-      checkIn: room.checkInDate ? new Date(room.checkInDate) : undefined,
-      checkOut: room.checkOutDate ? new Date(room.checkOutDate) : undefined
-    };
-  };
-
-  // Check if checkout date has passed (for rating display)
-  const shouldShowRating = (room: Room): boolean => {
-    const { checkOut } = getDateRange(room);
-    if (!checkOut) return false;
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const checkoutDate = new Date(checkOut);
-    checkoutDate.setHours(0, 0, 0, 0);
-    
-    return checkoutDate < today;
-  };
-
-  const getCurrencySymbol = (currencyCode: string) => {
-    switch (currencyCode) {
-      case 'EUR': return '€';
-      case 'USD': return '$';
-      case 'GBP': return '£';
-      case 'CHF': return 'CHF';
-      case 'JPY': return '¥';
-      default: return '€';
-    }
-  };
-
-  // Memoize expensive calculations
-  const uniqueHotels = React.useMemo(() => 
-    new Set(rooms.map(r => r.hotelName)).size, 
-    [rooms]
+    }, [loadRooms])
   );
 
   if (loading) {
@@ -250,97 +310,13 @@ export default function RoomsScreen() {
           </View>
         ) : (
           <View style={styles.roomsGrid}>
-            {rooms.map((room) => {
-              const { checkIn, checkOut } = getDateRange(room);
-              
-              return (
-                <View key={room.id} style={styles.roomCard}>
-                  <View style={styles.roomHeader}>
-                    <View style={styles.roomIconContainer}>
-                      <RoomTypeIcon roomType={room.roomType || 'single'} />
-                    </View>
-                    <View style={styles.roomActions}>
-                      <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => editRoom(room)}
-                        activeOpacity={0.7}>
-                        <Edit3 size={16} color="#625B71" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.roomMainInfo}>
-                    <View style={styles.roomNumberContainer}>
-                      <Hash size={18} color="#6750A4" />
-                      <Text style={styles.roomNumber} numberOfLines={1} ellipsizeMode="tail">
-                        Camera {room.roomNumber}
-                      </Text>
-                    </View>
-                    
-                    <View style={styles.floorContainer}>
-                      <Building size={18} color="#625B71" />
-                      <Text style={styles.floorText} numberOfLines={1} ellipsizeMode="tail">
-                        Piano {room.floor}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.hotelInfo}>
-                    <Text style={styles.hotelName}>{room.hotelName}</Text>
-                    <Text style={styles.hotelAddress} numberOfLines={2}>
-                      {room.hotelAddress}
-                    </Text>
-                  </View>
-
-                  {(checkIn || checkOut) && (
-                    <View style={styles.dateInfo}>
-                      <View style={styles.dateContent}>
-                        {checkIn && checkOut ? (
-                          <View style={styles.dateRange}>
-                            <Text style={styles.dateText}>{formatDate(checkIn)}</Text>
-                            <ArrowRight size={12} color="#6750A4" />
-                            <Text style={styles.dateText}>{formatDate(checkOut)}</Text>
-                          </View>
-                        ) : checkIn ? (
-                          <Text style={styles.dateText}>Check-in: {formatDate(checkIn)}</Text>
-                        ) : checkOut ? (
-                          <Text style={styles.dateText}>Check-out: {formatDate(checkOut)}</Text>
-                        ) : null}
-                      </View>
-                    </View>
-                  )}
-
-                  {room.pricePerNight && room.currency && (
-                    <View style={styles.priceInfo}>
-                      <Text style={styles.priceLabel}>Prezzo per notte</Text>
-                      <Text style={styles.priceAmount}>
-                        {room.pricePerNight.toFixed(2)} {getCurrencySymbol(room.currency)}
-                      </Text>
-                    </View>
-                  )}
-
-                  <View style={styles.bottomRow}>
-                    <View style={styles.roomTypeTag}>
-                      <Text style={styles.roomTypeText}>
-                        {getRoomTypeLabel(room.roomType || 'single')}
-                      </Text>
-                    </View>
-                    
-                    {shouldShowRating(room) && (
-                      <View style={styles.ratingContainer}>
-                        <StarRating
-                          rating={room.rating || 0}
-                          readonly={true}
-                          size={14}
-                          color="#FFD700"
-                          emptyColor="#E0E0E0"
-                        />
-                      </View>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
+            {rooms.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={room}
+                onEdit={editRoom}
+              />
+            ))}
           </View>
         )}
       </ScrollView>
@@ -355,8 +331,8 @@ export default function RoomsScreen() {
       
       {showPWAPrompt && (
         <PWAInstallPrompt
-          onInstall={() => setShowPWAPrompt(false)}
-          onDismiss={() => setShowPWAPrompt(false)}
+          onInstall={handlePWAInstall}
+          onDismiss={handlePWADismiss}
         />
       )}
     </View>
@@ -497,10 +473,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F2FA',
     alignItems: 'center',
     justifyContent: 'center',
-    cursor: 'pointer',
-  },
-  deleteButton: {
-    backgroundColor: '#FFEBEE',
   },
   roomMainInfo: {
     marginBottom: 16,
@@ -564,9 +536,6 @@ const styles = StyleSheet.create({
     color: '#1B5E20',
     textAlign: 'center',
   },
-  arrowIcon: {
-    marginHorizontal: 6,
-  },
   roomTypeTag: {
     alignSelf: 'flex-start',
     backgroundColor: '#E8DEF8',
@@ -587,18 +556,6 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  priceTag: {
-    backgroundColor: '#E8F5E8',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginLeft: 8,
-  },
-  priceText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1B5E20',
   },
   priceInfo: {
     backgroundColor: '#E8F5E8',

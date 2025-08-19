@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useMemo, memo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search as SearchIcon, Chrome as Home, Users, Crown, Building, Hash, Calendar, ArrowRight } from 'lucide-react-native';
@@ -15,15 +14,17 @@ const useFilteredRooms = (rooms: Room[], searchQuery: string, selectedRoomType: 
     let filtered = rooms;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(room =>
-        room.name.toLowerCase().includes(query) ||
-        room.description.toLowerCase().includes(query) ||
-        room.roomNumber.toLowerCase().includes(query) ||
-        room.hotelName.toLowerCase().includes(query) ||
-        room.hotelAddress.toLowerCase().includes(query) ||
-        room.floor.toLowerCase().includes(query)
-      );
+      const query = searchQuery.toLowerCase().trim();
+      if (query) {
+        filtered = filtered.filter(room =>
+          room.name.toLowerCase().includes(query) ||
+          room.description.toLowerCase().includes(query) ||
+          room.roomNumber.toLowerCase().includes(query) ||
+          room.hotelName.toLowerCase().includes(query) ||
+          room.hotelAddress.toLowerCase().includes(query) ||
+          room.floor.toLowerCase().includes(query)
+        );
+      }
     }
 
     if (selectedRoomType) {
@@ -35,8 +36,8 @@ const useFilteredRooms = (rooms: Room[], searchQuery: string, selectedRoomType: 
 };
 
 // Memoized room item component
-const RoomItem = memo(({ room }: { room: Room }) => {
-  const { checkIn, checkOut } = getDateRange(room);
+const RoomItem = React.memo(({ room }: { room: Room }) => {
+  const { checkIn, checkOut } = useMemo(() => getDateRange(room), [room]);
   
   return (
     <View style={styles.roomItem}>
@@ -97,35 +98,32 @@ const RoomItem = memo(({ room }: { room: Room }) => {
   );
 });
 
-// Helper functions moved outside component
+// Helper functions moved outside component for better performance
 const getRoomTypeIcon = (roomType: string) => {
+  const iconProps = { size: 20, color: "#6750A4" };
+  
   switch (roomType) {
     case 'single':
-      return <Home size={20} color="#6750A4" />;
+      return <Home {...iconProps} />;
     case 'double':
-      return <Users size={20} color="#6750A4" />;
+      return <Users {...iconProps} />;
     case 'triple':
-      return <Users size={20} color="#6750A4" />;
+      return <TripleRoomIcon {...iconProps} />;
     case 'suite':
-      return <Crown size={20} color="#6750A4" />;
+      return <Crown {...iconProps} />;
     default:
-      return <Home size={20} color="#6750A4" />;
+      return <Home {...iconProps} />;
   }
 };
 
 const getRoomTypeLabel = (roomType: string) => {
-  switch (roomType) {
-    case 'single':
-      return 'Singola';
-    case 'double':
-      return 'Doppia';
-    case 'triple':
-      return 'Tripla';
-    case 'suite':
-      return 'Suite';
-    default:
-      return 'Standard';
-  }
+  const labels = {
+    single: 'Singola',
+    double: 'Doppia',
+    triple: 'Tripla',
+    suite: 'Suite'
+  };
+  return labels[roomType as keyof typeof labels] || 'Standard';
 };
 
 const formatDate = (date: Date) => {
@@ -148,6 +146,14 @@ const getDateRange = (room: Room): { checkIn?: Date, checkOut?: Date } => {
   };
 };
 
+// Room types constant
+const ROOM_TYPES = [
+  { id: 'single', label: 'Singola', icon: Home },
+  { id: 'double', label: 'Doppia', icon: Users },
+  { id: 'triple', label: 'Tripla', icon: Users },
+  { id: 'suite', label: 'Suite', icon: Crown },
+] as const;
+
 export default function SearchScreen() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -157,36 +163,29 @@ export default function SearchScreen() {
   // Use memoized filtering
   const filteredRooms = useFilteredRooms(rooms, searchQuery, selectedRoomType);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadRooms();
-    }, [])
-  );
-
-  const loadRooms = React.useCallback(async () => {
+  const loadRooms = useCallback(async () => {
     try {
       const roomsData = await RoomStorage.getRooms();
       setRooms(roomsData || []);
     } catch (error) {
-      console.error('Errore nel caricamento delle camere:', error);
+      console.error('Error loading rooms:', error);
       setRooms([]);
     }
   }, []);
 
-  const roomTypes = React.useMemo(() => [
-    { id: 'single', label: 'Singola', icon: Home },
-    { id: 'double', label: 'Doppia', icon: Users },
-    { id: 'triple', label: 'Tripla', icon: Users },
-    { id: 'suite', label: 'Suite', icon: Crown },
-  ], []);
-
-  const handleRoomTypeSelect = React.useCallback((roomTypeId: string | null) => {
+  const handleRoomTypeSelect = useCallback((roomTypeId: string | null) => {
     setSelectedRoomType(current => current === roomTypeId ? null : roomTypeId);
   }, []);
 
-  const handleSearchChange = React.useCallback((text: string) => {
+  const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadRooms();
+    }, [loadRooms])
+  );
 
   return (
     <View style={styles.container}>
@@ -203,8 +202,11 @@ export default function SearchScreen() {
             style={styles.searchInput}
             placeholder="Cerca per nome, numero, albergo..."
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={handleSearchChange}
             placeholderTextColor="#79747E"
+            returnKeyType="search"
+            autoCorrect={false}
+            autoCapitalize="none"
           />
         </View>
       </View>
@@ -217,7 +219,8 @@ export default function SearchScreen() {
               styles.roomTypeChip,
               selectedRoomType === null && styles.roomTypeChipActive
             ]}
-            onPress={() => setSelectedRoomType(null)}>
+            onPress={() => setSelectedRoomType(null)}
+            activeOpacity={0.7}>
             <Text style={[
               styles.roomTypeChipText,
               selectedRoomType === null && styles.roomTypeChipTextActive
@@ -226,7 +229,7 @@ export default function SearchScreen() {
             </Text>
           </TouchableOpacity>
           
-          {roomTypes.map((roomType) => {
+          {ROOM_TYPES.map((roomType) => {
             const isActive = selectedRoomType === roomType.id;
             
             return (
@@ -236,7 +239,8 @@ export default function SearchScreen() {
                   styles.roomTypeChip,
                   isActive && styles.roomTypeChipActive
                 ]}
-                onPress={() => setSelectedRoomType(isActive ? null : roomType.id)}>
+                onPress={() => handleRoomTypeSelect(roomType.id)}
+                activeOpacity={0.7}>
                 {roomType.id === 'triple' ? (
                   <TripleRoomIcon 
                     size={16} 
@@ -277,7 +281,10 @@ export default function SearchScreen() {
             <SearchIcon size={64} color="#CAC4D0" />
             <Text style={styles.emptyTitle}>Nessun risultato</Text>
             <Text style={styles.emptySubtitle}>
-              Prova a modificare i filtri di ricerca
+              {rooms.length === 0 
+                ? 'Non hai ancora aggiunto camere'
+                : 'Prova a modificare i filtri di ricerca'
+              }
             </Text>
           </View>
         ) : (
@@ -490,9 +497,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1B5E20',
   },
-  arrowIcon: {
-    marginHorizontal: 6,
-  },
   roomTypeTag: {
     alignSelf: 'flex-start',
     backgroundColor: '#E8DEF8',
@@ -504,17 +508,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#6750A4',
-  },
-  priceInfo: {
-    backgroundColor: '#E8F5E8',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 8,
-  },
-  priceText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1B5E20',
-    textAlign: 'center',
   },
 });

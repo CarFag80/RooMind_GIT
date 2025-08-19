@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,58 +35,64 @@ export default function InfoModal({
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
+  const animateIn = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, scaleAnim, slideAnim]);
+
+  const animateOut = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 30,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, scaleAnim, slideAnim]);
+
   useEffect(() => {
     if (visible) {
-      // Animazione di entrata
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      animateIn();
     } else {
-      // Animazione di uscita
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 0.8,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 30,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      animateOut();
     }
-  }, [visible, fadeAnim, scaleAnim, slideAnim]);
+  }, [visible, animateIn, animateOut]);
 
-  const handleClose = React.useCallback(() => {
+  const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handleOverlayPress = React.useCallback(() => {
+  const handleOverlayPress = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     if (scrollable) {
       return (
         <ScrollView 
@@ -104,7 +110,8 @@ export default function InfoModal({
         <Text style={styles.message}>{message}</Text>
       </View>
     );
-  };
+  }, [scrollable, message]);
+
   return (
     <Modal
       transparent

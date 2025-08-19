@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 // Ensure proper date handling
@@ -35,12 +35,19 @@ interface CalendarDay {
   isDisabled: boolean;
 }
 
+// Constants for better performance
+const MONTH_NAMES = [
+  'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+];
+
+const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
 export default function Calendar({
   selectedDate,
   onDateSelect,
   minimumDate,
   maximumDate,
-  highlightedDates = [],
   mode = 'single',
   startDate,
   endDate,
@@ -50,8 +57,11 @@ export default function Calendar({
     return selectedDate || startDate || new Date();
   });
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
 
   // Memoized calendar data for performance
   const calendarData = useMemo(() => {
@@ -60,8 +70,6 @@ export default function Calendar({
     
     // First day of the month
     const firstDay = new Date(year, month, 1);
-    // Last day of the month
-    const lastDay = new Date(year, month + 1, 0);
     
     // Start from Monday (1) instead of Sunday (0)
     const startDateCalc = new Date(firstDay);
@@ -119,16 +127,9 @@ export default function Calendar({
     }
     
     return days;
-  }, [currentMonth, selectedDate, startDate, endDate, minimumDate, maximumDate, mode]);
+  }, [currentMonth, selectedDate, startDate, endDate, minimumDate, maximumDate, mode, today]);
 
-  const monthNames = [
-    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-  ];
-
-  const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
+  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
     setCurrentMonth(prev => {
       const newMonth = new Date(prev);
       if (direction === 'prev') {
@@ -138,9 +139,9 @@ export default function Calendar({
       }
       return newMonth;
     });
-  };
+  }, []);
 
-  const handleDatePress = (day: CalendarDay) => {
+  const handleDatePress = useCallback((day: CalendarDay) => {
     if (day.isDisabled) return;
     
     if (mode === 'single') {
@@ -166,9 +167,9 @@ export default function Calendar({
         onRangeSelect(day.date, undefined);
       }
     }
-  };
+  }, [mode, onDateSelect, onRangeSelect, startDate, endDate]);
 
-  const getDayStyle = (day: CalendarDay) => {
+  const getDayStyle = useCallback((day: CalendarDay) => {
     const styles = [dayStyles.day];
     
     if (!day.isCurrentMonth) {
@@ -188,9 +189,9 @@ export default function Calendar({
     }
     
     return styles;
-  };
+  }, []);
 
-  const getDayTextStyle = (day: CalendarDay) => {
+  const getDayTextStyle = useCallback((day: CalendarDay) => {
     const styles = [dayStyles.dayText];
     
     if (!day.isCurrentMonth) {
@@ -208,7 +209,9 @@ export default function Calendar({
     }
     
     return styles;
-  };
+  }, []);
+
+  const monthTitle = `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
 
   return (
     <View style={styles.container}>
@@ -221,9 +224,7 @@ export default function Calendar({
           <ChevronLeft size={20} color="#6750A4" />
         </TouchableOpacity>
         
-        <Text style={styles.monthTitle}>
-          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-        </Text>
+        <Text style={styles.monthTitle}>{monthTitle}</Text>
         
         <TouchableOpacity 
           style={styles.navButton}
@@ -235,7 +236,7 @@ export default function Calendar({
 
       {/* Day names header */}
       <View style={styles.dayNamesContainer}>
-        {dayNames.map((dayName) => (
+        {DAY_NAMES.map((dayName) => (
           <View key={dayName} style={styles.dayNameCell}>
             <Text style={styles.dayNameText}>{dayName}</Text>
           </View>

@@ -4,37 +4,42 @@ import { Room } from '@/types/room';
 
 const STORAGE_KEY = 'roomind_rooms';
 
+// Optimized cache with better memory management
 let roomsCache: Room[] | null = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 30000;
+const CACHE_DURATION = 60000; // Increased to 1 minute for better performance
 
+// Optimized web storage with error handling
 const webStorage = {
   async getItem(key: string): Promise<string | null> {
     try {
-      if (typeof localStorage !== 'undefined') {
-        return localStorage.getItem(key);
-      }
+      return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
     } catch (error) {
-      console.warn('localStorage not available:', error);
+      console.warn('localStorage getItem failed:', error);
+      return null;
     }
-    return null;
   },
+  
   async setItem(key: string, value: string): Promise<void> {
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(key, value);
+        // Invalidate cache after successful write
         roomsCache = null;
+        cacheTimestamp = 0;
       }
     } catch (error) {
-      console.error('🚨 localStorage setItem failed:', error);
+      console.error('localStorage setItem failed:', error);
       throw error;
     }
   },
+  
   async removeItem(key: string): Promise<void> {
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(key);
         roomsCache = null;
+        cacheTimestamp = 0;
       }
     } catch (error) {
       console.warn('localStorage removeItem failed:', error);
@@ -44,41 +49,84 @@ const webStorage = {
 
 const storage = Platform.OS === 'web' ? webStorage : AsyncStorage;
 
+// Optimized date parsing with validation
+const parseDate = (dateValue: any): Date | undefined => {
+  if (!dateValue) return undefined;
+  
+  try {
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? undefined : date;
+  } catch {
+    return undefined;
+  }
+};
+
+// Optimized room processing with better type safety
+const processRoom = (room: any): Room => ({
+  id: room.id,
+  name: room.name || room.roomNumber || 'Camera senza nome',
+  description: room.description || '',
+  roomType: room.roomType || 'single',
+  roomNumber: room.roomNumber || '',
+  floor: room.floor || '',
+  hotelName: room.hotelName || '',
+  hotelAddress: room.hotelAddress || '',
+  createdAt: parseDate(room.createdAt) || new Date(),
+  updatedAt: parseDate(room.updatedAt) || new Date(),
+  checkInDate: parseDate(room.checkInDate) || parseDate(room.date), // Legacy support
+  checkOutDate: parseDate(room.checkOutDate),
+  rating: typeof room.rating === 'number' ? room.rating : undefined,
+  pricePerNight: typeof room.pricePerNight === 'number' ? room.pricePerNight : undefined,
+  currency: room.currency || undefined,
+});
+
 export class RoomStorage {
+  // Optimized cache management
+  private static invalidateCache(): void {
+    roomsCache = null;
+    cacheTimestamp = 0;
+  }
+
+  private static isCacheValid(): boolean {
+    return roomsCache !== null && (Date.now() - cacheTimestamp) < CACHE_DURATION;
+  }
+
   static async getRooms(): Promise<Room[]> {
-    const now = Date.now();
-    if (roomsCache && (now - cacheTimestamp) < CACHE_DURATION) {
-      return roomsCache;
+    // Return cached data if valid
+    if (this.isCacheValid()) {
+      return roomsCache!;
     }
     
     try {
       const data = await storage.getItem(STORAGE_KEY);
-      if (data) {
-        const rooms: any[] = JSON.parse(data);
-        const processedRooms: Room[] = rooms.map((room: any) => ({
-          ...room,
-          createdAt: new Date(room.createdAt),
-          updatedAt: new Date(room.updatedAt),
-          roomType: room.roomType || 'single',
-          checkInDate: room.checkInDate ? new Date(room.checkInDate) : (room.date ? new Date(room.date) : undefined),
-          checkOutDate: room.checkOutDate ? new Date(room.checkOutDate) : undefined,
-        }));
-        
-        const sortedRooms = processedRooms.sort((a: Room, b: Room) => 
-          b.createdAt.getTime() - a.createdAt.getTime()
-        );
-        
-        roomsCache = sortedRooms;
-        cacheTimestamp = now;
-        
-        return sortedRooms;
-      }
       
-      roomsCache = [];
-      cacheTimestamp = now;
-      return [];
+      if (!data) {
+        roomsCache = [];
+        cacheTimestamp = Date.now();
+        return [];
+      }
+
+      const rawRooms: any[] = JSON.parse(data);
+      
+      // Process and validate rooms with error handling
+      const processedRooms: Room[] = rawRooms
+        .filter(room => room && typeof room === 'object')
+        .map(processRoom)
+        .filter(room => room.id && room.roomNumber && room.hotelName); // Basic validation
+      
+      // Sort by creation date (newest first)
+      const sortedRooms = processedRooms.sort((a, b) => 
+        b.createdAt.getTime() - a.createdAt.getTime()
+      );
+      
+      // Update cache
+      roomsCache = sortedRooms;
+      cacheTimestamp = Date.now();
+      
+      return sortedRooms;
     } catch (error) {
-      console.error('Errore nel caricamento delle camere:', error);
+      console.error('Error loading rooms:', error);
+      // Return empty array on error but don't cache it
       return [];
     }
   }
@@ -86,142 +134,124 @@ export class RoomStorage {
   static async addRoom(roomData: Omit<Room, 'id' | 'createdAt' | 'updatedAt'>): Promise<Room> {
     try {
       const rooms = await this.getRooms();
+      
+      // Generate unique ID with timestamp and random component
       const newRoom: Room = {
         ...roomData,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
       
-      rooms.unshift(newRoom);
-      await storage.setItem(STORAGE_KEY, JSON.stringify(rooms));
+      // Add to beginning of array for better performance
+      const updatedRooms = [newRoom, ...rooms];
       
-      roomsCache = rooms;
+      await storage.setItem(STORAGE_KEY, JSON.stringify(updatedRooms));
+      
+      // Update cache immediately
+      roomsCache = updatedRooms;
       cacheTimestamp = Date.now();
       
       return newRoom;
     } catch (error) {
-      console.error('Errore nell\'aggiunta della camera:', error);
-      throw error;
+      console.error('Error adding room:', error);
+      throw new Error('Failed to add room');
     }
   }
 
   static async updateRoom(id: string, updates: Partial<Omit<Room, 'id' | 'createdAt'>>): Promise<Room | null> {
     try {
-      console.log('🔄 INIZIO UPDATE ROOM');
-      console.log('🆔 Room ID:', id);
-      console.log('📝 Updates ricevuti:', updates);
-      
       const rooms = await this.getRooms();
       const roomIndex = rooms.findIndex(room => room.id === id);
       
       if (roomIndex === -1) {
-        console.log('❌ Camera non trovata');
+        console.warn('Room not found for update:', id);
         return null;
       }
 
-      console.log('📋 Camera originale:', rooms[roomIndex]);
+      const existingRoom = rooms[roomIndex];
       
-      // Create completely new room object to avoid reference issues
+      // Create updated room with explicit field handling
       const updatedRoom: Room = {
-        id: rooms[roomIndex].id,
-        createdAt: rooms[roomIndex].createdAt,
+        ...existingRoom,
+        ...updates,
+        id: existingRoom.id, // Ensure ID is not overwritten
+        createdAt: existingRoom.createdAt, // Preserve creation date
         updatedAt: new Date(),
-        name: updates.name ?? rooms[roomIndex].name,
-        description: updates.description ?? rooms[roomIndex].description,
-        roomType: updates.roomType ?? rooms[roomIndex].roomType,
-        roomNumber: updates.roomNumber ?? rooms[roomIndex].roomNumber,
-        floor: updates.floor ?? rooms[roomIndex].floor,
-        hotelName: updates.hotelName ?? rooms[roomIndex].hotelName,
-        hotelAddress: updates.hotelAddress ?? rooms[roomIndex].hotelAddress,
-        checkInDate: updates.checkInDate ?? rooms[roomIndex].checkInDate,
-        checkOutDate: updates.checkOutDate ?? rooms[roomIndex].checkOutDate,
-        rating: updates.rating ?? rooms[roomIndex].rating,
       };
       
-      // Handle price and currency explicitly
+      // Handle price/currency logic
       if ('pricePerNight' in updates) {
-        if (updates.pricePerNight !== undefined) {
-          updatedRoom.pricePerNight = updates.pricePerNight;
-          updatedRoom.currency = updates.currency ?? rooms[roomIndex].currency ?? 'EUR';
-          console.log('💰 Prezzo aggiornato:', updatedRoom.pricePerNight, updatedRoom.currency);
+        if (updates.pricePerNight === undefined) {
+          // Remove price and currency
+          delete updatedRoom.pricePerNight;
+          delete updatedRoom.currency;
         } else {
-          // Remove price and currency completely
-          console.log('🗑️ Rimosso prezzo e valuta');
-        }
-      } else {
-        // Keep existing price and currency
-        if (rooms[roomIndex].pricePerNight !== undefined) {
-          updatedRoom.pricePerNight = rooms[roomIndex].pricePerNight;
-          updatedRoom.currency = rooms[roomIndex].currency;
+          // Set price and ensure currency exists
+          updatedRoom.pricePerNight = updates.pricePerNight;
+          updatedRoom.currency = updates.currency || existingRoom.currency || 'EUR';
         }
       }
       
-      // Handle currency updates when price exists
-      if ('currency' in updates && updatedRoom.pricePerNight !== undefined) {
-        updatedRoom.currency = updates.currency;
-        console.log('💱 Valuta aggiornata:', updatedRoom.currency);
-      }
-      
-      console.log('✅ Camera aggiornata:', updatedRoom);
-      
+      // Update the room in the array
       rooms[roomIndex] = updatedRoom;
-
+      
       await storage.setItem(STORAGE_KEY, JSON.stringify(rooms));
       
-      // Force cache invalidation
+      // Update cache
       roomsCache = rooms;
       cacheTimestamp = Date.now();
       
-      console.log('💾 Salvataggio completato');
-      return rooms[roomIndex];
+      return updatedRoom;
     } catch (error) {
-      console.error('Errore nell\'aggiornamento della camera:', error);
-      throw error;
+      console.error('Error updating room:', error);
+      throw new Error('Failed to update room');
     }
   }
 
   static async deleteRoom(id: string): Promise<boolean> {
     try {
-      console.log('🔥 INIZIO ELIMINAZIONE CAMERA');
-      console.log('🔥 ID da eliminare:', id, 'tipo:', typeof id);
-      
       const rooms = await this.getRooms();
-      console.log('📋 Camere caricate:', rooms.length);
+      const initialLength = rooms.length;
       
-      const roomToDelete = rooms.find(room => room.id === id);
-      if (!roomToDelete) {
-        console.log('❌ Camera non trovata con ID:', id);
+      // Filter out the room to delete
+      const updatedRooms = rooms.filter(room => room.id !== id);
+      
+      // Check if room was actually removed
+      if (updatedRooms.length === initialLength) {
+        console.warn('Room not found for deletion:', id);
         return false;
       }
       
-      console.log('🎯 Camera trovata:', roomToDelete.name);
-      
-      const updatedRooms = rooms.filter(room => room.id !== id);
-      console.log('📊 Camere dopo filtro:', updatedRooms.length);
-      
       await storage.setItem(STORAGE_KEY, JSON.stringify(updatedRooms));
-      console.log('💾 Dati salvati');
       
-      const verifyRooms = await this.getRooms();
-      console.log('✅ Verifica: camere rimanenti:', verifyRooms.length);
+      // Update cache
+      roomsCache = updatedRooms;
+      cacheTimestamp = Date.now();
       
-      return verifyRooms.length === updatedRooms.length;
+      return true;
     } catch (error) {
-      console.error('💥 Errore eliminazione:', error);
-      throw error;
+      console.error('Error deleting room:', error);
+      throw new Error('Failed to delete room');
     }
   }
 
   static async clearAll(): Promise<void> {
     try {
       await storage.removeItem(STORAGE_KEY);
-      
-      roomsCache = null;
-      cacheTimestamp = 0;
+      this.invalidateCache();
     } catch (error) {
-      console.error('💥 Errore pulizia:', error);
-      throw error;
+      console.error('Error clearing all data:', error);
+      throw new Error('Failed to clear all data');
     }
+  }
+
+  // Utility method to get cache info (for debugging)
+  static getCacheInfo(): { cached: boolean; timestamp: number; size: number } {
+    return {
+      cached: roomsCache !== null,
+      timestamp: cacheTimestamp,
+      size: roomsCache?.length || 0
+    };
   }
 }
