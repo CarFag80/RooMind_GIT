@@ -51,6 +51,9 @@ export default function RootLayout() {
           link.href = '/manifest.json';
           document.head.appendChild(link);
         }
+      } catch (error) {
+        console.warn('PWA setup failed:', error);
+      }
         
         // Add theme color meta tag
         if (!document.querySelector('meta[name="theme-color"]')) {
