@@ -134,11 +134,6 @@ export default function TabLayout() {
           marginTop: 0,
         },
         tabBarHideOnKeyboard: Platform.OS === 'android',
-        // Forza il layout centrato
-        tabBarContentContainerStyle: {
-          alignItems: 'center',
-          justifyContent: 'space-around',
-        },
       }}>
       <Tabs.Screen
         name="index"

@@ -378,18 +378,34 @@
             
             // Applica angoli arrotondati per iOS
             if (size >= 152) {
-                applyRoundedCorners(ctx, size);
+                applyRoundedCornersLegacy(ctx, size);
             }
             
             return canvas;
         }
         
-        function applyRoundedCorners(ctx, size) {
+        function applyRoundedCornersLegacy(ctx, size) {
             const radius = size * 0.2237; // Raggio standard iOS
             
             ctx.globalCompositeOperation = 'destination-in';
             ctx.beginPath();
-            ctx.roundRect(0, 0, size, size, radius);
+            
+            // Fallback per roundRect
+            if (typeof ctx.roundRect === 'function') {
+                ctx.roundRect(0, 0, size, size, radius);
+            } else {
+                // Implementazione manuale rounded rectangle
+                ctx.moveTo(radius, 0);
+                ctx.lineTo(size - radius, 0);
+                ctx.quadraticCurveTo(size, 0, size, radius);
+                ctx.lineTo(size, size - radius);
+                ctx.quadraticCurveTo(size, size, size - radius, size);
+                ctx.lineTo(radius, size);
+                ctx.quadraticCurveTo(0, size, 0, size - radius);
+                ctx.lineTo(0, radius);
+                ctx.quadraticCurveTo(0, 0, radius, 0);
+                ctx.closePath();
+            }
             ctx.fill();
             ctx.globalCompositeOperation = 'source-over';
         }

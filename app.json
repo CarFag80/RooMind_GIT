@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "sdkVersion": "53.0.0",
     "platforms": ["ios", "android", "web"],
     "splash": {
       "resizeMode": "contain",

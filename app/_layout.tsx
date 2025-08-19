@@ -59,7 +59,7 @@ export default function RootLayout() {
         if (!appleStatusBar) {
           const meta = document.createElement('meta');
           meta.name = 'apple-mobile-web-app-status-bar-style';
-          meta.content = 'default';
+          meta.content = 'black-translucent';
           document.head.appendChild(meta);
         }
         

@@ -197,17 +197,6 @@ export default function DatePicker({
     return isItalianLocale() ? "text" : "date";
   }, [isItalianLocale]);
 
-  // Remove unused variables
-  const _ = {
-    showPicker,
-    inputValue,
-    getMinimumDateString,
-    handleDateChange,
-    handleWebDateChange,
-    getPlaceholder,
-    getInputType
-  };
-
   return (
     <>
       <View style={styles.container}>

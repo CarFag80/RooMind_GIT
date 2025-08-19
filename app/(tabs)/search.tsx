@@ -187,7 +187,7 @@ export default function SearchScreen() {
   const handleSearchChange = React.useCallback((text: string) => {
     setSearchQuery(text);
   }, []);
-
+  
   return (
     <View style={styles.container}>
       <LinearGradient
