@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
+import * as SplashScreen from 'expo-splash-screen'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  useFrameworkReady();
   const [appIsReady, setAppIsReady] = useState(false);
   
   useEffect(() => {
@@ -63,22 +65,9 @@ export default function RootLayout() {
     }
   }, []);
 
-  if (!appIsReady) {
-    return null;
-  }
-
-  return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="edit-room" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </>
-  );
-}
-      });
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppIsReady(true);
     }, 500);
     
     // PWA setup only on web
@@ -142,11 +131,15 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
+  if (!appIsReady) {
+    return null;
+  }
+
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="edit-room" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-room" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
