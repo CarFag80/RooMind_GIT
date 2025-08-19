@@ -55,6 +55,11 @@ export default function RootLayout() {
         // Add theme color meta tag
         if (!document.querySelector('meta[name="theme-color"]')) {
           const meta = document.createElement('meta');
+        }
+      }
+    }
+  }
+  )
   useEffect(() => {
     // PWA setup only on web
     if (typeof window !== 'undefined') {
