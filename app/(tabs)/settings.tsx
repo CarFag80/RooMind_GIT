@@ -26,7 +26,7 @@ const MODAL_CONTENTS = {
     icon: <HelpCircle size={24} color="#7B1FA2" />
   },
   info: {
-    title: 'RooMind v1.6 beta',
+    title: 'RooMind v1.6',
     message: 'App per la gestione delle camere d\'albergo\n\nSviluppata con React Native & Expo\nDesign Material Design 3',
     icon: <Info size={24} color="#6750A4" />
   },
@@ -474,7 +474,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>RooMind v1.6 beta</Text>
+          <Text style={styles.footerText}>RooMind v1.6</Text>
           <Text style={styles.footerSubtext}>Le tue camere, sempre con te</Text>
         </View>
       </ScrollView>

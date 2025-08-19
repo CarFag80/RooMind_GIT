@@ -219,4 +219,4 @@ Per problemi o domande:
 
 ---
 
-**RooMind v1.0** - Le tue camere, sempre con te 🏨✨
+**RooMind v1.6** - Le tue camere, sempre con te 🏨✨

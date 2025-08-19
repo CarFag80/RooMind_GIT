@@ -1,7 +1,7 @@
 {
   "name": "roomind-app",
   "main": "expo-router/entry",
-  "version": "1.6.0-beta",
+  "version": "1.6.0",
   "private": true,
   "scripts": {
     "dev": "npx expo start --web",
