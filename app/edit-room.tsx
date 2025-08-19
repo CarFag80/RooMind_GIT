@@ -664,8 +664,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     minHeight: 80,
-    flexWrap: 'wrap',
-    gap: 8,
     width: '100%',
   },
   backButton: {

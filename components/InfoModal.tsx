@@ -285,8 +285,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
-    boxShadow: '0 2px 8px rgba(103, 80, 164, 0.2)',
     elevation: 4,
+    shadowColor: '#6750A4',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   okButtonText: {
     fontSize: 16,
