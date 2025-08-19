@@ -1,8 +1,17 @@
 const { getDefaultConfig } = require('expo/metro-config');
 
-const config = getDefaultConfig(__dirname);
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname, {
+  // [Web-only]: Enables CSS support in Metro.
+  isCSSEnabled: true,
+});
 
-// Configurazione base per Expo Go
-config.resolver.platforms = ['ios', 'android', 'native', 'web'];
+// Ensure these values are not overridden by getDefaultConfig
+config.resolver.platforms = [
+  'ios',
+  'android',
+  'native',
+  'web'
+];
 
 module.exports = config;
