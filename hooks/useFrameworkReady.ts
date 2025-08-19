@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 
 declare global {
   interface Window {
@@ -9,12 +8,10 @@ declare global {
 
 export function useFrameworkReady() {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.frameworkReady) {
       // Ensure window object exists and call frameworkReady safely
       try {
-        if (window.frameworkReady) {
-          window.frameworkReady();
-        }
+        window.frameworkReady();
       } catch (error) {
         console.warn('Framework ready callback failed:', error);
       }

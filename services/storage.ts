@@ -11,8 +11,8 @@ const CACHE_DURATION = 30000;
 const webStorage = {
   async getItem(key: string): Promise<string | null> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(key);
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(key);
       }
     } catch (error) {
       console.warn('localStorage not available:', error);
@@ -21,8 +21,8 @@ const webStorage = {
   },
   async setItem(key: string, value: string): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, value);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, value);
         roomsCache = null;
       }
     } catch (error) {
@@ -32,8 +32,8 @@ const webStorage = {
   },
   async removeItem(key: string): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem(key);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(key);
         roomsCache = null;
       }
     } catch (error) {

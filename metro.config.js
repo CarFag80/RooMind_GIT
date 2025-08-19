@@ -2,10 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
-// Configurazione per SDK 53
-config.resolver.platforms = ['native', 'ios', 'android', 'web'];
-
-// Supporto per New Architecture
-config.transformer.unstable_allowRequireContext = true;
+// Configurazione base per Expo Go
+config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
 module.exports = config;
