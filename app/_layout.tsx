@@ -42,29 +42,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     // PWA setup only on web
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      try {
-        // Add PWA manifest link
-        if (!document.querySelector('link[rel="manifest"]')) {
-          const link = document.createElement('link');
-          link.rel = 'manifest';
-          link.href = '/manifest.json';
-          document.head.appendChild(link);
-        }
-      } catch (error) {
-        console.warn('PWA setup failed:', error);
-      }
-        
-        // Add theme color meta tag
-        if (!document.querySelector('meta[name="theme-color"]')) {
-          const meta = document.createElement('meta');
-        }
-      }
-    }
-  }
-  )
-  useEffect(() => {
-    // PWA setup only on web
     if (typeof window !== 'undefined') {
       try {
         const viewport = document.querySelector('meta[name="viewport"]');
