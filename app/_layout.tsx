@@ -55,21 +55,7 @@ export default function RootLayout() {
         // Add theme color meta tag
         if (!document.querySelector('meta[name="theme-color"]')) {
           const meta = document.createElement('meta');
-          meta.name = 'theme-color';
-          meta.content = '#6750A4';
-          document.head.appendChild(meta);
-        }
-      } catch (error) {
-        console.warn('PWA setup failed:', error);
-      }
-    }
-  }, []);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAppIsReady(true);
-    }, 500);
-    
     // PWA setup only on web
     if (typeof window !== 'undefined') {
       try {
@@ -127,8 +113,6 @@ export default function RootLayout() {
         console.warn('PWA meta tags setup failed:', error);
       }
     }
-    
-    return () => clearTimeout(timer);
   }, []);
 
   if (!appIsReady) {
