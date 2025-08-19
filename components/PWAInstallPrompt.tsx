@@ -25,7 +25,7 @@ export default function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPro
     if (Platform.OS !== 'web' || typeof window === 'undefined' || typeof document === 'undefined') return;
 
     // Check if user has chosen "don't show again"
-    const savedPreference = localStorage.getItem(STORAGE_KEY);
+    const savedPreference = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (savedPreference === 'true') {
       return; // Don't show prompt if user chose not to see it again
     }
@@ -106,7 +106,9 @@ export default function PWAInstallPrompt({ onInstall, onDismiss }: PWAInstallPro
     
     // Save preference if "don't show again" is checked
     if (dontShowAgain) {
-      localStorage.setItem(STORAGE_KEY, 'true');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, 'true');
+      }
     }
   };
 

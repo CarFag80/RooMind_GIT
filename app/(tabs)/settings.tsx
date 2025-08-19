@@ -127,7 +127,7 @@ export default function SettingsScreen() {
           const existingRooms = await RoomStorage.getRooms();
           const existingKeys = new Set(
             existingRooms.map(room => 
-              `${room.hotelName?.toLowerCase()}-${room.roomNumber}-${room.floor}`
+              `${room.hotelName?.toLowerCase() || ''}-${room.roomNumber || ''}-${room.floor || ''}`
             )
           );
           
@@ -143,7 +143,7 @@ export default function SettingsScreen() {
             }
             
             // Check for duplicates
-            const roomKey = `${roomData.hotelName.toLowerCase()}-${roomData.roomNumber}-${roomData.floor}`;
+            const roomKey = `${(roomData.hotelName || '').toLowerCase()}-${roomData.roomNumber || ''}-${roomData.floor || ''}`;
             if (existingKeys.has(roomKey)) {
               skippedCount++;
               continue;

@@ -7,6 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "platforms": ["ios", "android", "web"],
     "splash": {
       "resizeMode": "contain",
@@ -15,6 +16,9 @@
     "android": {
       "package": "com.roomind.app",
       "versionCode": 1,
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "buildToolsVersion": "35.0.0",
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -23,7 +27,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.roomind.app"
+      "bundleIdentifier": "com.roomind.app",
+      "deploymentTarget": "13.4"
     },
     "web": {
       "bundler": "metro",
