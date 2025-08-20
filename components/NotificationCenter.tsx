@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'react-native';
-import { Bell, BellOff, X, Check, Calendar, Star, Home, Settings as SettingsIcon } from 'lucide-react-native';
+import { Bell, BellOff, X, Check, Calendar, Star, Chrome as Home, Settings as SettingsIcon } from 'lucide-react-native';
 import { notificationService, NotificationItem, NotificationSettings } from '@/services/notificationService';
 import { router } from 'expo-router';
 
