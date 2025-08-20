@@ -428,7 +428,7 @@ export default function SettingsScreen() {
               </View>
               <View>
                 <Text style={styles.menuItemTitle}>Notifiche</Text>
-                <Text style={styles.menuItemSubtitle}>Gestisci promemoria e impostazioni</Text>
+                <Text style={styles.menuItemSubtitle}>Gestione promemoria</Text>
               </View>
             </View>
           </TouchableOpacity>
