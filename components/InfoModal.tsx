@@ -132,10 +132,7 @@ export default function InfoModal({
               style={[
                 scrollable ? styles.modalContainerScrollable : styles.modalContainer,
                 {
-                  transform: [
-                    { scale: scaleAnim },
-                    { translateY: slideAnim }
-                  ],
+                  opacity: scaleAnim,
                 }
               ]}>
               {/* Header con icona e titolo */}
