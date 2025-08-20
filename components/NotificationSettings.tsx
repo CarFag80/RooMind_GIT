@@ -378,7 +378,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                       <Text style={styles.settingTitle}>Ore Silenziose</Text>
                       {settings.preferredTime === 'anytime' && (
                         <Text style={styles.settingSubtitle}>
-                          Disabilitato con "Qualsiasi orario"
+                          Disabilitato
                         </Text>
                       )}
                     </View>
