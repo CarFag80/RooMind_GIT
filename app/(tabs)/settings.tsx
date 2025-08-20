@@ -8,6 +8,7 @@ import { Room } from '@/types/room';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InfoModal from '@/components/InfoModal';
 import NotificationSettings from '@/components/NotificationSettings';
+import NotificationTest from '@/components/NotificationTest';
 
 // Memoized modal content to avoid recreation
 const MODAL_CONTENTS = {
@@ -414,6 +415,12 @@ export default function SettingsScreen() {
               </View>
             </View>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Debug & Test</Text>
+          
+          <NotificationTest />
         </View>
 
         <View style={styles.section}>

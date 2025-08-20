@@ -516,17 +516,17 @@ class NotificationService {
       clearInterval(this.checkInterval);
     }
 
-    // Check every 30 seconds for testing
+    // Check every 5 seconds for immediate testing
     this.checkInterval = setInterval(() => {
       console.log('⏰ Periodic check triggered');
       this.checkPendingNotifications();
-    }, 10 * 1000); // Ridotto a 10 secondi per test più rapidi
+    }, 5 * 1000); // 5 secondi per test immediati
 
-    // Initial check after 1 second
+    // Initial check after 2 seconds
     setTimeout(() => {
       console.log('🔍 Initial notification check starting...');
       this.checkPendingNotifications();
-    }, 1000);
+    }, 2000);
   }
 
   stopPeriodicCheck(): void {
