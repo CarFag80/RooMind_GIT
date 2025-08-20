@@ -211,25 +211,42 @@ class NotificationService {
     if (!this.settings.enabled) return;
 
     const now = new Date();
+    console.log(`🏨 Scheduling notifications for room ${room.roomNumber}:`, {
+      checkInDate: room.checkInDate,
+      checkOutDate: room.checkOutDate,
+      currentTime: now.toISOString()
+    });
+    
     const notifications: NotificationItem[] = [];
 
     // Check-in reminder (24 hours before)
     if (this.settings.checkInReminder && room.checkInDate) {
       const checkInDate = new Date(room.checkInDate);
       const reminderDate = new Date(checkInDate.getTime() - 24 * 60 * 60 * 1000);
+      const adjustedDate = this.adjustToPreferredTime(reminderDate);
       
-      if (reminderDate > now) {
+      console.log(`📅 Check-in reminder calculation:`, {
+        checkInDate: checkInDate.toISOString(),
+        reminderDate: reminderDate.toISOString(),
+        adjustedDate: adjustedDate.toISOString(),
+        isInFuture: adjustedDate > now
+      });
+      
+      if (adjustedDate > now) {
         notifications.push({
           id: `checkin-${room.id}-${Date.now()}`,
           roomId: room.id,
           type: 'check-in',
           title: 'Check-in Domani',
           message: `Ricorda: check-in domani per la camera ${room.roomNumber} presso ${room.hotelName}`,
-          scheduledDate: this.adjustToPreferredTime(reminderDate),
+          scheduledDate: adjustedDate,
           isRead: false,
           isSent: false,
           createdAt: new Date()
         });
+        console.log(`✅ Check-in notification scheduled for: ${adjustedDate.toISOString()}`);
+      } else {
+        console.log(`❌ Check-in notification NOT scheduled (date in past): ${adjustedDate.toISOString()}`);
       }
     }
 
@@ -237,19 +254,30 @@ class NotificationService {
     if (this.settings.checkOutReminder && room.checkOutDate) {
       const checkOutDate = new Date(room.checkOutDate);
       const reminderDate = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
+      const adjustedDate = this.adjustToPreferredTime(reminderDate);
       
-      if (reminderDate > now) {
+      console.log(`📅 Check-out reminder calculation:`, {
+        checkOutDate: checkOutDate.toISOString(),
+        reminderDate: reminderDate.toISOString(),
+        adjustedDate: adjustedDate.toISOString(),
+        isInFuture: adjustedDate > now
+      });
+      
+      if (adjustedDate > now) {
         notifications.push({
           id: `checkout-${room.id}-${Date.now()}`,
           roomId: room.id,
           type: 'check-out',
           title: 'Check-out Domani',
           message: `Ricorda: check-out domani dalla camera ${room.roomNumber} presso ${room.hotelName}`,
-          scheduledDate: this.adjustToPreferredTime(reminderDate),
+          scheduledDate: adjustedDate,
           isRead: false,
           isSent: false,
           createdAt: new Date()
         });
+        console.log(`✅ Check-out notification scheduled for: ${adjustedDate.toISOString()}`);
+      } else {
+        console.log(`❌ Check-out notification NOT scheduled (date in past): ${adjustedDate.toISOString()}`);
       }
     }
 
@@ -257,18 +285,33 @@ class NotificationService {
     if (this.settings.ratingReminder && room.checkOutDate) {
       const checkOutDate = new Date(room.checkOutDate);
       const reminderDate = new Date(checkOutDate.getTime() + 48 * 60 * 60 * 1000);
+      const adjustedDate = this.adjustToPreferredTime(reminderDate);
       
-      if (reminderDate > now && !room.rating) {
+      console.log(`📅 Rating reminder calculation:`, {
+        checkOutDate: checkOutDate.toISOString(),
+        reminderDate: reminderDate.toISOString(),
+        adjustedDate: adjustedDate.toISOString(),
+        isInFuture: adjustedDate > now,
+        hasRating: !!room.rating
+      });
+      
+      if (adjustedDate > now && !room.rating) {
         notifications.push({
           id: `rating-${room.id}-${Date.now()}`,
           roomId: room.id,
           type: 'rating',
           title: 'Valuta il Soggiorno',
           message: `Come è stato il soggiorno nella camera ${room.roomNumber} presso ${room.hotelName}? Lascia una valutazione!`,
-          scheduledDate: this.adjustToPreferredTime(reminderDate),
+          scheduledDate: adjustedDate,
           isRead: false,
           isSent: false,
           createdAt: new Date()
+        });
+        console.log(`✅ Rating notification scheduled for: ${adjustedDate.toISOString()}`);
+      } else {
+        console.log(`❌ Rating notification NOT scheduled - reason:`, {
+          dateInPast: adjustedDate <= now,
+          hasRating: !!room.rating
         });
       }
     }
@@ -277,7 +320,11 @@ class NotificationService {
     this.history.notifications.push(...notifications);
     await this.saveHistory();
 
-    console.log(`📅 Scheduled ${notifications.length} notifications for room ${room.roomNumber}`);
+    console.log(`📅 FINAL: Scheduled ${notifications.length} notifications for room ${room.roomNumber}`, {
+      totalNotifications: this.history.notifications.length,
+      pendingCount: this.getPendingCount(),
+      unreadCount: this.getUnreadCount()
+    });
   }
 
   private adjustToPreferredTime(date: Date): Date {
@@ -460,7 +507,9 @@ class NotificationService {
 
   getPendingCount(): number {
     const now = new Date();
-    return this.history.notifications.filter(n => !n.isSent && n.scheduledDate > now).length;
+    const pendingCount = this.history.notifications.filter(n => !n.isSent && n.scheduledDate > now).length;
+    console.log(`📊 Pending notifications count: ${pendingCount}`);
+    return pendingCount;
   }
 
   async rescheduleAllNotifications(rooms: Room[]): Promise<void> {
