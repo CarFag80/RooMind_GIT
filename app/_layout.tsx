@@ -26,6 +26,14 @@ export default function RootLayout() {
         // Register service worker for background notifications
         if (Platform.OS === 'web' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
           try {
+            // Check if we're in StackBlitz environment
+            if (window.location.hostname.includes('stackblitz') || 
+                window.location.hostname.includes('webcontainer') ||
+                window.location.hostname.includes('bolt.new')) {
+              console.log('🚫 Service Worker skipped: StackBlitz environment detected');
+              return;
+            }
+            
             const registration = await navigator.serviceWorker.register('/sw.js');
             console.log('🔧 Service Worker registered:', registration);
             
