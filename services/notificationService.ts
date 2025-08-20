@@ -401,34 +401,40 @@ class NotificationService {
     console.log(`🔍 Checking pending notifications at: ${now.toISOString()}`);
     console.log(`📊 Total notifications in history: ${this.history.notifications.length}`);
     
-    // Debug: analizza tutte le notifiche in dettaglio
-    console.log('🔍 DETAILED NOTIFICATION ANALYSIS:');
-    this.history.notifications.forEach((notification, index) => {
-      const scheduledDate = new Date(notification.scheduledDate);
-      const isInFuture = scheduledDate > now;
-      const isInQuietHours = this.isInQuietHours(now);
-      
-      console.log(`  ${index + 1}. ${notification.type} - ${notification.title}`);
-      console.log(`     📅 Scheduled: ${scheduledDate.toISOString()}`);
-      console.log(`     ⏰ Current:   ${now.toISOString()}`);
-      console.log(`     🔮 Future: ${isInFuture}`);
-      console.log(`     📤 Sent: ${notification.isSent}`);
-      console.log(`     🔇 Quiet hours: ${isInQuietHours}`);
-      console.log(`     ✅ Should send: ${!notification.isSent && scheduledDate <= now && !isInQuietHours}`);
-      console.log('     ---');
-    });
-    
     const pendingNotifications = this.history.notifications.filter(
       notification => 
         !notification.isSent && 
-        notification.scheduledDate <= now &&
+        new Date(notification.scheduledDate) <= now &&
         !this.isInQuietHours(now)
     );
 
     console.log(`📋 Found ${pendingNotifications.length} pending notifications to send`);
-    pendingNotifications.forEach(n => {
-      console.log(`  - ${n.type}: ${n.title} (scheduled: ${n.scheduledDate.toISOString()})`);
-    });
+    
+    // Debug: mostra solo le notifiche che dovrebbero essere inviate
+    if (pendingNotifications.length > 0) {
+      console.log('🚀 NOTIFICATIONS TO SEND:');
+      pendingNotifications.forEach((n, index) => {
+        console.log(`  ${index + 1}. ${n.type}: ${n.title}`);
+        console.log(`     📅 Scheduled: ${new Date(n.scheduledDate).toISOString()}`);
+      });
+    } else {
+      // Mostra solo le prime 3 notifiche per debug
+      console.log('🔍 SAMPLE ANALYSIS (first 3 notifications):');
+      this.history.notifications.slice(0, 3).forEach((notification, index) => {
+        const scheduledDate = new Date(notification.scheduledDate);
+        const isInFuture = scheduledDate > now;
+        const isInQuietHours = this.isInQuietHours(now);
+        
+        console.log(`  ${index + 1}. ${notification.type} - ${notification.title}`);
+        console.log(`     📅 Scheduled: ${scheduledDate.toISOString()}`);
+        console.log(`     ⏰ Current:   ${now.toISOString()}`);
+        console.log(`     🔮 Future: ${isInFuture}`);
+        console.log(`     📤 Sent: ${notification.isSent}`);
+        console.log(`     🔇 Quiet hours: ${isInQuietHours}`);
+        console.log(`     ✅ Should send: ${!notification.isSent && scheduledDate <= now && !isInQuietHours}`);
+        console.log('     ---');
+      });
+    }
 
     for (const notification of pendingNotifications) {
       // Always mark as sent and add to history, send push only if enabled
@@ -514,13 +520,13 @@ class NotificationService {
     this.checkInterval = setInterval(() => {
       console.log('⏰ Periodic check triggered');
       this.checkPendingNotifications();
-    }, 30 * 1000);
+    }, 10 * 1000); // Ridotto a 10 secondi per test più rapidi
 
-    // Initial check after 2 seconds
+    // Initial check after 1 second
     setTimeout(() => {
       console.log('🔍 Initial notification check starting...');
       this.checkPendingNotifications();
-    }, 2000);
+    }, 1000);
   }
 
   stopPeriodicCheck(): void {
