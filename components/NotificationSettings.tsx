@@ -13,36 +13,25 @@ const TIME_CATEGORIES = [
   {
     category: 'Mattina',
     times: [
-      { value: '08:00', label: '8:00' },
-      { value: '09:00', label: '9:00' },
-      { value: '10:00', label: '10:00' },
-      { value: '11:00', label: '11:00' },
+      { value: '08:00', label: '8:00 - 12:00' },
     ]
   },
   {
     category: 'Pomeriggio',
     times: [
-      { value: '12:00', label: '12:00' },
-      { value: '14:00', label: '14:00' },
-      { value: '16:00', label: '16:00' },
+      { value: '14:00', label: '12:00 - 18:00' },
     ]
   },
   {
     category: 'Sera',
     times: [
-      { value: '18:00', label: '18:00' },
-      { value: '20:00', label: '20:00' },
-      { value: '22:00', label: '22:00' },
+      { value: '20:00', label: '18:00 - 23:00' },
     ]
   },
   {
     category: 'Sempre',
     times: [
-      { value: '00:00', label: '00:00' },
-      { value: '03:00', label: '3:00' },
-      { value: '06:00', label: '6:00' },
-      { value: '15:00', label: '15:00' },
-      { value: '21:00', label: '21:00' },
+      { value: '09:00', label: 'Qualsiasi orario' },
     ]
   }
 ];
