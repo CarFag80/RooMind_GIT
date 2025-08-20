@@ -401,11 +401,6 @@ class NotificationService {
 // Singleton instance
 export const notificationService = new NotificationService();
 
-// Auto-initialize when imported
-if (Platform.OS === 'web') {
-  notificationService.initialize().catch(console.error);
-}
-
 export default notificationService;
 
 export { notificationService };
