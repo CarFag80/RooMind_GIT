@@ -251,6 +251,11 @@ class NotificationService {
   }
 
   private adjustToPreferredTime(date: Date): Date {
+    // Se è selezionato "qualsiasi orario", invia immediatamente alla scadenza
+    if (this.settings.preferredTime === 'anytime') {
+      return date; // Restituisce la data originale senza modifiche
+    }
+    
     const [hours, minutes] = this.settings.preferredTime.split(':').map(Number);
     const adjusted = new Date(date);
     adjusted.setHours(hours, minutes, 0, 0);
@@ -264,7 +269,10 @@ class NotificationService {
   }
 
   private isInQuietHours(date: Date): boolean {
-    if (!this.settings.quietHours.enabled) return false;
+    // Se è selezionato "qualsiasi orario", non ci sono ore silenziose
+    if (!this.settings.quietHours.enabled || this.settings.preferredTime === 'anytime') {
+      return false;
+    }
 
     const hours = date.getHours();
     const minutes = date.getMinutes();
