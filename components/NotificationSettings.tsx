@@ -122,7 +122,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
       // Show success message when permission is granted
       setModalContent({
         title: 'Notifiche Abilitate',
-        message: 'Le notifiche browser sono state abilitate con successo. Riceverai promemoria per check-in, check-out e valutazioni.',
+        message: 'Perfetto! Le notifiche browser sono attive. Riceverai promemoria automatici per:\n\n• Check-in (24h prima)\n• Check-out (24h prima)\n• Valutazioni (48h dopo il soggiorno)\n\nI promemoria appariranno anche nel centro notifiche dell\'app.',
         icon: <Bell size={24} color="#4CAF50" />
       });
       setShowModal(true);

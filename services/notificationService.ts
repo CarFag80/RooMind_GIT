@@ -123,68 +123,13 @@ class NotificationService {
       await AsyncStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(this.history));
     } catch (error) {
       console.error('Failed to save notification history:', error);
-    }
+      }
   }
 
   async requestPushPermission(): Promise<boolean> {
     if (Platform.OS !== 'web' || typeof window === 'undefined') {
       return false;
     }
-
-    try {
-      if (!('Notification' in window)) {
-        console.warn('Browser does not support notifications');
-        return false;
-      }
-
-      if (Notification.permission === 'granted') {
-        return true;
-      }
-
-      if (Notification.permission === 'denied') {
-        console.warn('Notification permission was previously denied');
-        return false;
-      }
-
-      // Show a test notification to demonstrate the feature
-      console.log('Requesting notification permission...');
-      const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      
-      await AsyncStorage.setItem(STORAGE_KEYS.PERMISSION, JSON.stringify({
-        granted,
-        timestamp: new Date().toISOString()
-      }));
-
-      // If permission granted, show a welcome notification
-      if (granted) {
-        try {
-          new Notification('RooMind - Notifiche Abilitate', {
-            body: 'Riceverai promemoria per i tuoi soggiorni in hotel.',
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-96x96.png',
-            tag: 'welcome-notification',
-            requireInteraction: false
-          });
-        } catch (error) {
-          console.warn('Failed to show welcome notification:', error);
-        }
-      }
-
-      return granted;
-    } catch (error) {
-      console.error('Failed to request push permission:', error);
-      return false;
-    }
-  }
-
-  async scheduleNotificationsForRoom(room: Room): Promise<void> {
-    // Always schedule notifications if the system is enabled, regardless of push settings
-    if (!this.settings.enabled) return;
-
-    const notifications: NotificationItem[] = [];
-    const now = new Date();
-
     // Check-in reminder (24 hours before)
     if (this.settings.checkInReminder && room.checkInDate) {
       const checkInDate = new Date(room.checkInDate);
@@ -315,18 +260,19 @@ class NotificationService {
       // Send push notification if enabled and permission granted
       if (this.settings.pushEnabled && Platform.OS === 'web' && typeof window !== 'undefined') {
         if (Notification.permission === 'granted') {
-          new Notification(notification.title, {
-            body: notification.message,
+          new Notification('🏨 RooMind - Notifiche Abilitate', {
+            body: 'Perfetto! Ora riceverai promemoria automatici per check-in, check-out e valutazioni dei tuoi soggiorni.',
             icon: '/icons/icon-192x192.png',
             badge: '/icons/icon-96x96.png',
             tag: notification.id,
-            requireInteraction: isTestNotification, // Test notifications require interaction
+            requireInteraction: true
             data: {
               roomId: notification.roomId,
               type: notification.type,
               isTest: isTestNotification
             }
           });
+          console.log('🎉 Welcome notification sent successfully');
           
           if (isTestNotification) {
             console.log('🧪 TEST NOTIFICATION SENT:', notification.title);
@@ -450,6 +396,11 @@ export const notificationService = new NotificationService();
 // Auto-initialize when imported
 if (Platform.OS === 'web') {
   notificationService.initialize().catch(console.error);
+}
+
+export default notificationService;
+
+export { notificationService }.initialize().catch(console.error);
 }
 
 export default notificationService;

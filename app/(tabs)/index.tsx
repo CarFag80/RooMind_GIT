@@ -281,8 +281,8 @@ export default function RoomsScreen() {
     // Update immediately
     updateUnreadCount();
 
-    // Update every 30 seconds
-    const interval = setInterval(updateUnreadCount, 30000);
+    // Update every 15 seconds for better responsiveness
+    const interval = setInterval(updateUnreadCount, 15000);
 
     return () => clearInterval(interval);
   }, []);
