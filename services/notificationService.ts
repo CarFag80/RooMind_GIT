@@ -265,7 +265,7 @@ class NotificationService {
             icon: '/icons/icon-192x192.png',
             badge: '/icons/icon-96x96.png',
             tag: notification.id,
-            requireInteraction: true
+            requireInteraction: true,
             data: {
               roomId: notification.roomId,
               type: notification.type,
