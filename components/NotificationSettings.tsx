@@ -383,21 +383,20 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                       
                       return (
                         <TouchableOpacity
-                      <TouchableOpacity
-                        key={`${option.start}-${option.end}`}
-                        style={[
-                          styles.timeRangeOption,
-                          isSelected && styles.timeRangeOptionSelected
-                        ]}
-                        onPress={() => handleQuietHoursChange(option.start, option.end)}
-                        disabled={saving}>
-                        <Text style={[
-                          styles.timeRangeOptionText,
-                          isSelected && styles.timeRangeOptionTextSelected
-                        ]}>
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
+                          key={`${option.start}-${option.end}`}
+                          style={[
+                            styles.timeRangeOption,
+                            isSelected && styles.timeRangeOptionSelected
+                          ]}
+                          onPress={() => handleQuietHoursChange(option.start, option.end)}
+                          disabled={saving}>
+                          <Text style={[
+                            styles.timeRangeOptionText,
+                            isSelected && styles.timeRangeOptionTextSelected
+                          ]}>
+                            {option.label}
+                          </Text>
+                        </TouchableOpacity>
                       );
                     })}
                     
