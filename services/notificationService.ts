@@ -307,6 +307,8 @@ class NotificationService {
 
   private async sendNotification(notification: NotificationItem): Promise<void> {
     try {
+      const isTestNotification = notification.title.includes('🧪 TEST');
+      
       // Send push notification if enabled and permission granted
       if (this.settings.pushEnabled && Platform.OS === 'web' && typeof window !== 'undefined') {
         if (Notification.permission === 'granted') {
@@ -315,18 +317,23 @@ class NotificationService {
             icon: '/icons/icon-192x192.png',
             badge: '/icons/icon-96x96.png',
             tag: notification.id,
-            requireInteraction: true,
+            requireInteraction: isTestNotification, // Test notifications require interaction
             data: {
               roomId: notification.roomId,
-              type: notification.type
+              type: notification.type,
+              isTest: isTestNotification
             }
           });
+          
+          if (isTestNotification) {
+            console.log('🧪 TEST NOTIFICATION SENT:', notification.title);
+          }
         }
       }
 
       // Mark as sent
       notification.isSent = true;
-      console.log(`📱 Notification sent: ${notification.title}`);
+      console.log(`📱 Notification sent: ${notification.title}${isTestNotification ? ' (TEST)' : ''}`);
     } catch (error) {
       console.error('Failed to send notification:', error);
     }
@@ -441,3 +448,5 @@ if (Platform.OS === 'web') {
 }
 
 export default notificationService;
+
+export { notificationService }
