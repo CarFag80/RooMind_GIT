@@ -36,10 +36,13 @@ const TIME_CATEGORIES = [
     ]
   },
   {
-    category: '24H',
+    category: 'Sempre',
     times: [
       { value: '00:00', label: '00:00' },
+      { value: '03:00', label: '3:00' },
       { value: '06:00', label: '6:00' },
+      { value: '15:00', label: '15:00' },
+      { value: '21:00', label: '21:00' },
     ]
   }
 ];
