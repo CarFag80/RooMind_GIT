@@ -142,9 +142,12 @@ class NotificationService {
       }
 
       if (Notification.permission === 'denied') {
+        console.warn('Notification permission was previously denied');
         return false;
       }
 
+      // Show a test notification to demonstrate the feature
+      console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
       const granted = permission === 'granted';
       
@@ -152,6 +155,21 @@ class NotificationService {
         granted,
         timestamp: new Date().toISOString()
       }));
+
+      // If permission granted, show a welcome notification
+      if (granted) {
+        try {
+          new Notification('RooMind - Notifiche Abilitate', {
+            body: 'Riceverai promemoria per i tuoi soggiorni in hotel.',
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-96x96.png',
+            tag: 'welcome-notification',
+            requireInteraction: false
+          });
+        } catch (error) {
+          console.warn('Failed to show welcome notification:', error);
+        }
+      }
 
       return granted;
     } catch (error) {

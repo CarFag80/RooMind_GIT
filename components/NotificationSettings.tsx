@@ -111,13 +111,21 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
       const granted = await notificationService.requestPushPermission();
       if (!granted) {
         setModalContent({
-          title: 'Permesso Negato',
-          message: 'Per ricevere notifiche push, abilita i permessi nelle impostazioni del browser.',
+          title: 'Autorizzazione Richiesta',
+          message: 'Per ricevere notifiche push, autorizza le notifiche quando richiesto dal browser. Se hai già negato, puoi abilitarle nelle impostazioni del browser.',
           icon: <BellOff size={24} color="#FF9800" />
         });
         setShowModal(true);
         return;
       }
+      
+      // Show success message when permission is granted
+      setModalContent({
+        title: 'Notifiche Abilitate',
+        message: 'Le notifiche browser sono state abilitate con successo. Riceverai promemoria per check-in, check-out e valutazioni.',
+        icon: <Bell size={24} color="#4CAF50" />
+      });
+      setShowModal(true);
     }
 
     const newSettings = { ...settings, pushEnabled: enabled };
