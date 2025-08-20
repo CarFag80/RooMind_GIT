@@ -256,7 +256,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                 <View style={styles.settingItem}>
                   <View style={styles.settingLeft}>
                     <Text style={styles.settingTitle}>Check-in (24h prima)</Text>
-                    <Text style={styles.settingSubtitle}>Ricorda il check-in del giorno dopo</Text>
                   </View>
                   <Switch
                     value={settings.checkInReminder}
@@ -270,7 +269,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                 <View style={styles.settingItem}>
                   <View style={styles.settingLeft}>
                     <Text style={styles.settingTitle}>Check-out (24h prima)</Text>
-                    <Text style={styles.settingSubtitle}>Ricorda il check-out del giorno dopo</Text>
                   </View>
                   <Switch
                     value={settings.checkOutReminder}
@@ -284,7 +282,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                 <View style={styles.settingItem}>
                   <View style={styles.settingLeft}>
                     <Text style={styles.settingTitle}>Valutazione (48h dopo)</Text>
-                    <Text style={styles.settingSubtitle}>Ricorda di valutare il soggiorno</Text>
                   </View>
                   <Switch
                     value={settings.ratingReminder}
@@ -299,9 +296,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
               {/* Preferred Time */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Orario Preferito</Text>
-                <Text style={styles.sectionSubtitle}>
-                  Scegli quando ricevere le notifiche durante la giornata
-                </Text>
                 
                 <View style={styles.timeGrid}>
                   {TIME_OPTIONS.map((option) => (
@@ -334,9 +328,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                     </View>
                     <View>
                       <Text style={styles.settingTitle}>Ore Silenziose</Text>
-                      <Text style={styles.settingSubtitle}>
-                        Non ricevere notifiche durante le ore di riposo
-                      </Text>
                     </View>
                   </View>
                   <Switch
