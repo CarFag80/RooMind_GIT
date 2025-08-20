@@ -107,25 +107,59 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
     if (!settings) return;
 
     if (enabled) {
-      // Request permission first
-      const granted = await notificationService.requestPushPermission();
-      if (!granted) {
+      try {
+        // Check if browser supports notifications
+        if (typeof window === 'undefined' || !('Notification' in window)) {
+          setModalContent({
+            title: 'Browser Non Supportato',
+            message: 'Il tuo browser non supporta le notifiche push. Puoi comunque utilizzare le notifiche interne dell\'app.',
+            icon: <BellOff size={24} color="#FF9800" />
+          });
+          setShowModal(true);
+          return;
+        }
+
+        // Check current permission status
+        if (Notification.permission === 'denied') {
+          setModalContent({
+            title: 'Notifiche Bloccate',
+            message: 'Le notifiche sono state bloccate per questo sito. Per abilitarle:\n\n1. Clicca sull\'icona del lucchetto nella barra degli indirizzi\n2. Seleziona "Consenti" per le notifiche\n3. Ricarica la pagina e riprova',
+            icon: <BellOff size={24} color="#F44336" />
+          });
+          setShowModal(true);
+          return;
+        }
+
+        // Request permission
+        const granted = await notificationService.requestPushPermission();
+        
+        if (!granted) {
+          setModalContent({
+            title: 'Autorizzazione Richiesta',
+            message: 'Per ricevere notifiche push, autorizza le notifiche quando richiesto dal browser.\n\nSe non vedi il popup di autorizzazione:\n• Controlla se è bloccato dal browser\n• Verifica le impostazioni del sito\n• Ricarica la pagina e riprova',
+            icon: <BellOff size={24} color="#FF9800" />
+          });
+          setShowModal(true);
+          return;
+        }
+        
+        // Show success message when permission is granted
         setModalContent({
-          title: 'Autorizzazione Richiesta',
-          message: 'Per ricevere notifiche push, autorizza le notifiche quando richiesto dal browser. Se hai già negato, puoi abilitarle nelle impostazioni del browser.',
-          icon: <BellOff size={24} color="#FF9800" />
+          title: 'Notifiche Browser Attivate!',
+          message: 'Perfetto! Le notifiche browser sono ora attive.\n\nRiceverai promemoria automatici per:\n• Check-in (24h prima)\n• Check-out (24h prima)\n• Valutazioni (48h dopo il soggiorno)\n\nI promemoria appariranno anche nel centro notifiche dell\'app.',
+          icon: <Bell size={24} color="#4CAF50" />
+        });
+        setShowModal(true);
+      } catch (error) {
+        console.error('Error enabling push notifications:', error);
+        setModalContent({
+          title: 'Errore',
+          message: 'Si è verificato un errore durante l\'attivazione delle notifiche. Riprova più tardi.',
+          icon: <BellOff size={24} color="#F44336" />
         });
         setShowModal(true);
         return;
       }
-      
-      // Show success message when permission is granted
-      setModalContent({
-        title: 'Notifiche Abilitate',
-        message: 'Perfetto! Le notifiche browser sono attive. Riceverai promemoria automatici per:\n\n• Check-in (24h prima)\n• Check-out (24h prima)\n• Valutazioni (48h dopo il soggiorno)\n\nI promemoria appariranno anche nel centro notifiche dell\'app.',
-        icon: <Bell size={24} color="#4CAF50" />
-      });
-      setShowModal(true);
     }
 
     const newSettings = { ...settings, pushEnabled: enabled };
