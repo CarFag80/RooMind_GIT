@@ -123,13 +123,21 @@ class NotificationService {
       await AsyncStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(this.history));
     } catch (error) {
       console.error('Failed to save notification history:', error);
-      }
+    }
   }
 
   async requestPushPermission(): Promise<boolean> {
     if (Platform.OS !== 'web' || typeof window === 'undefined') {
       return false;
     }
+  }
+
+  async scheduleNotificationsForRoom(room: Room): Promise<void> {
+    if (!this.settings.enabled) return;
+
+    const now = new Date();
+    const notifications: NotificationItem[] = [];
+
     // Check-in reminder (24 hours before)
     if (this.settings.checkInReminder && room.checkInDate) {
       const checkInDate = new Date(room.checkInDate);
@@ -400,9 +408,4 @@ if (Platform.OS === 'web') {
 
 export default notificationService;
 
-export { notificationService }.initialize().catch(console.error);
-}
-
-export default notificationService;
-
-export { notificationService }
+export { notificationService };
