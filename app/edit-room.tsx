@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateRangePicker from '@/components/DateRangePicker';
 import InfoModal from '@/components/InfoModal';
 import StarRating from '@/components/StarRating';
+import { notificationService } from '@/services/notificationService';
 
 export default function EditRoomScreen() {
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
@@ -234,6 +235,16 @@ export default function EditRoomScreen() {
 
       const updatedRoom = await RoomStorage.updateRoom(room.id, updates);
       console.log('✅ Room aggiornata:', updatedRoom);
+      
+      // Update notifications for the room
+      if (updatedRoom) {
+        try {
+          await notificationService.removeNotificationsForRoom(updatedRoom.id);
+          await notificationService.scheduleNotificationsForRoom(updatedRoom);
+        } catch (error) {
+          console.error('Failed to update notifications:', error);
+        }
+      }
       
       setModalContent({
         title: 'Modifiche Salvate!',

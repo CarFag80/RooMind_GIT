@@ -10,6 +10,7 @@ import DateRangePicker from '@/components/DateRangePicker';
 import { useFocusEffect } from 'expo-router';
 import InfoModal from '@/components/InfoModal';
 import TripleRoomIcon from '@/components/TripleRoomIcon';
+import { notificationService } from '@/services/notificationService';
 
 // Memoized room types to avoid recreation on each render
 const ROOM_TYPES = [
@@ -166,6 +167,18 @@ export default function AddScreen() {
       };
 
       await RoomStorage.addRoom(newRoom);
+      
+      // Schedule notifications for the new room
+      try {
+        await notificationService.scheduleNotificationsForRoom({
+          ...newRoom,
+          id: Date.now().toString(), // Temporary ID for scheduling
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      } catch (error) {
+        console.error('Failed to schedule notifications:', error);
+      }
       
       // Show success modal first, then navigate
       setModalContent({

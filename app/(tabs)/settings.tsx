@@ -7,6 +7,7 @@ import { RoomStorage } from '@/services/storage';
 import { Room } from '@/types/room';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InfoModal from '@/components/InfoModal';
+import NotificationSettings from '@/components/NotificationSettings';
 
 // Memoized modal content to avoid recreation
 const MODAL_CONTENTS = {
@@ -61,6 +62,7 @@ const MODAL_CONTENTS = {
 export default function SettingsScreen() {
   const [roomCount, setRoomCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({ 
     title: '', 
@@ -419,6 +421,20 @@ export default function SettingsScreen() {
           
           <TouchableOpacity 
             style={styles.menuItem}
+            onPress={() => setShowNotificationSettings(true)}>
+            <View style={styles.menuItemLeft}>
+              <View style={[styles.menuIcon, { backgroundColor: '#FFF3E0' }]}>
+                <Bell size={20} color="#F57C00" />
+              </View>
+              <View>
+                <Text style={styles.menuItemTitle}>Notifiche</Text>
+                <Text style={styles.menuItemSubtitle}>Gestisci promemoria e impostazioni</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
             onPress={() => showInfo('privacy')}>
             <View style={styles.menuItemLeft}>
               <View style={[styles.menuIcon, { backgroundColor: '#E3F2FD' }]}>
@@ -488,6 +504,15 @@ export default function SettingsScreen() {
         icon={modalContent.icon}
         scrollable={modalContent.scrollable}
       />
+      
+      {showNotificationSettings && (
+        <View style={styles.modalOverlay}>
+          <NotificationSettings
+            visible={showNotificationSettings}
+            onClose={() => setShowNotificationSettings(false)}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -607,5 +632,17 @@ const styles = StyleSheet.create({
   footerSubtext: {
     fontSize: 14,
     color: '#79747E',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 1000,
   },
 });

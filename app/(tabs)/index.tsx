@@ -10,6 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InfoModal from '@/components/InfoModal';
 import StarRating from '@/components/StarRating';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import NotificationCenter from '@/components/NotificationCenter';
+import { notificationService } from '@/services/notificationService';
 
 // Memoized components for better performance
 const RoomTypeIcon = React.memo(({ roomType }: { roomType: string }) => {
@@ -200,6 +202,8 @@ export default function RoomsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showPWAPrompt, setShowPWAPrompt] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const insets = useSafeAreaInsets();
   
   // Modal states
@@ -221,6 +225,14 @@ export default function RoomsScreen() {
     try {
       const roomsData = await RoomStorage.getRooms();
       setRooms(roomsData || []);
+      
+      // Schedule notifications for all rooms
+      if (roomsData && roomsData.length > 0) {
+        await notificationService.rescheduleAllNotifications(roomsData);
+      }
+      
+      // Update unread count
+      setUnreadCount(notificationService.getUnreadCount());
     } catch (error) {
       console.error('Error loading rooms:', error);
       setRooms([]);
@@ -250,6 +262,16 @@ export default function RoomsScreen() {
     setShowPWAPrompt(false);
   }, []);
 
+  const handleNotificationPress = useCallback(() => {
+    setShowNotifications(true);
+  }, []);
+
+  const handleNotificationClose = useCallback(() => {
+    setShowNotifications(false);
+    // Update unread count when closing
+    setUnreadCount(notificationService.getUnreadCount());
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       loadRooms();
@@ -277,8 +299,26 @@ export default function RoomsScreen() {
       <LinearGradient
         colors={['#6750A4', '#7F67BE']}
         style={styles.header}>
-        <Text style={styles.headerTitle}>RooMind</Text>
-        <Text style={styles.headerSubtitle}>Le tue camere, sempre con te</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerTitle}>RooMind</Text>
+            <Text style={styles.headerSubtitle}>Le tue camere, sempre con te</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.notificationButton}
+            onPress={handleNotificationPress}
+            activeOpacity={0.7}>
+            <Bell size={20} color="#FFFFFF" />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       <ScrollView 
@@ -335,6 +375,11 @@ export default function RoomsScreen() {
           onDismiss={handlePWADismiss}
         />
       )}
+      
+      <NotificationCenter
+        visible={showNotifications}
+        onClose={handleNotificationClose}
+      />
     </View>
   );
 }
@@ -353,6 +398,11 @@ const styles = StyleSheet.create({
     minHeight: 100,
     width: '100%',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -365,6 +415,33 @@ const styles = StyleSheet.create({
     color: '#E8DEF8',
     opacity: 0.9,
     flexShrink: 1,
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#FF5722',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  notificationBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,

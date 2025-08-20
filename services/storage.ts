@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { Room } from '@/types/room';
+import { notificationService } from './notificationService';
 
 const STORAGE_KEY = 'roomind_rooms';
 
@@ -103,6 +104,13 @@ export class RoomStorage {
       if (!data) {
         roomsCache = [];
         cacheTimestamp = Date.now();
+        
+        // Remove notifications for deleted room
+        try {
+          await notificationService.removeNotificationsForRoom(id);
+        } catch (error) {
+          console.error('Failed to remove notifications for deleted room:', error);
+        }
         return [];
       }
 
