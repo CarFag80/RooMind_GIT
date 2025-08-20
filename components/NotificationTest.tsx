@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Bell, Check, X, AlertCircle } from 'lucide-react-native';
+import { Bell, Check, X, CircleAlert as AlertCircle } from 'lucide-react-native';
 
 export default function NotificationTest() {
   const [permissionStatus, setPermissionStatus] = useState<string>('unknown');
