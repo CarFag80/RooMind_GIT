@@ -206,9 +206,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                 </View>
                 <View>
                   <Text style={styles.settingTitle}>Abilita Notifiche</Text>
-                  <Text style={styles.settingSubtitle}>
-                    {settings.enabled ? 'Riceverai promemoria per le tue camere' : 'Nessuna notifica verrà inviata'}
-                  </Text>
                 </View>
               </View>
               <Switch
@@ -234,9 +231,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                     </View>
                     <View>
                       <Text style={styles.settingTitle}>Notifiche Browser</Text>
-                      <Text style={styles.settingSubtitle}>
-                        Ricevi notifiche anche quando l'app è chiusa
-                      </Text>
                     </View>
                   </View>
                   <Switch
