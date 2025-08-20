@@ -65,11 +65,41 @@ class NotificationService {
     try {
       await this.loadSettings();
       await this.loadHistory();
+      
+      // Load all rooms and reschedule notifications
+      await this.rescheduleAllNotificationsFromStorage();
+      
       this.startPeriodicCheck();
       this.isInitialized = true;
-      console.log('📱 NotificationService initialized');
+      
+      const unreadCount = this.getUnreadCount();
+      const pendingCount = this.getPendingCount();
+      console.log(`📱 NotificationService initialized - ${unreadCount} unread, ${pendingCount} pending`);
     } catch (error) {
       console.error('Failed to initialize NotificationService:', error);
+    }
+  }
+
+  private async rescheduleAllNotificationsFromStorage(): Promise<void> {
+    try {
+      // Dynamic import to avoid circular dependency
+      const { RoomStorage } = await import('./storage');
+      const rooms = await RoomStorage.getRooms();
+      
+      if (rooms && rooms.length > 0) {
+        // Clear existing unsent notifications
+        this.history.notifications = this.history.notifications.filter(n => n.isSent);
+        
+        // Schedule new notifications for all rooms
+        for (const room of rooms) {
+          await this.scheduleNotificationsForRoom(room);
+        }
+        
+        await this.saveHistory();
+        console.log(`🔄 Rescheduled notifications for ${rooms.length} rooms`);
+      }
+    } catch (error) {
+      console.error('Failed to reschedule notifications from storage:', error);
     }
   }
 

@@ -236,16 +236,6 @@ export default function EditRoomScreen() {
       const updatedRoom = await RoomStorage.updateRoom(room.id, updates);
       console.log('✅ Room aggiornata:', updatedRoom);
       
-      // Update notifications for the room
-      if (updatedRoom) {
-        try {
-          await notificationService.removeNotificationsForRoom(updatedRoom.id);
-          await notificationService.scheduleNotificationsForRoom(updatedRoom);
-        } catch (error) {
-          console.error('Failed to update notifications:', error);
-        }
-      }
-      
       setModalContent({
         title: 'Modifiche Salvate!',
         message: 'La camera è stata aggiornata con successo.',

@@ -168,18 +168,6 @@ export default function AddScreen() {
 
       await RoomStorage.addRoom(newRoom);
       
-      // Schedule notifications for the new room
-      try {
-        await notificationService.scheduleNotificationsForRoom({
-          ...newRoom,
-          id: Date.now().toString(), // Temporary ID for scheduling
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-      } catch (error) {
-        console.error('Failed to schedule notifications:', error);
-      }
-      
       // Show success modal first, then navigate
       setModalContent({
         title: 'Camera Salvata!',

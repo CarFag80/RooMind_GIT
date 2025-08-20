@@ -226,11 +226,6 @@ export default function RoomsScreen() {
       const roomsData = await RoomStorage.getRooms();
       setRooms(roomsData || []);
       
-      // Schedule notifications for all rooms
-      if (roomsData && roomsData.length > 0) {
-        await notificationService.rescheduleAllNotifications(roomsData);
-      }
-      
       // Update unread count
       setUnreadCount(notificationService.getUnreadCount());
     } catch (error) {

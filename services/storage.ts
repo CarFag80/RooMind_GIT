@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { Room } from '@/types/room';
-import { notificationService } from './notificationService';
 
 const STORAGE_KEY = 'roomind_rooms';
 
@@ -104,13 +103,6 @@ export class RoomStorage {
       if (!data) {
         roomsCache = [];
         cacheTimestamp = Date.now();
-        
-        // Remove notifications for deleted room
-        try {
-          await notificationService.removeNotificationsForRoom(id);
-        } catch (error) {
-          console.error('Failed to remove notifications for deleted room:', error);
-        }
         return [];
       }
 
@@ -159,6 +151,16 @@ export class RoomStorage {
       // Update cache immediately
       roomsCache = updatedRooms;
       cacheTimestamp = Date.now();
+      
+      // Schedule notifications for the new room (async, non-blocking)
+      setTimeout(async () => {
+        try {
+          const { notificationService } = await import('./notificationService');
+          await notificationService.scheduleNotificationsForRoom(newRoom);
+        } catch (error) {
+          console.error('Failed to schedule notifications for new room:', error);
+        }
+      }, 100);
       
       return newRoom;
     } catch (error) {
@@ -210,6 +212,17 @@ export class RoomStorage {
       roomsCache = rooms;
       cacheTimestamp = Date.now();
       
+      // Update notifications for the room (async, non-blocking)
+      setTimeout(async () => {
+        try {
+          const { notificationService } = await import('./notificationService');
+          await notificationService.removeNotificationsForRoom(id);
+          await notificationService.scheduleNotificationsForRoom(updatedRoom);
+        } catch (error) {
+          console.error('Failed to update notifications for room:', error);
+        }
+      }, 100);
+      
       return updatedRoom;
     } catch (error) {
       console.error('Error updating room:', error);
@@ -236,6 +249,16 @@ export class RoomStorage {
       // Update cache
       roomsCache = updatedRooms;
       cacheTimestamp = Date.now();
+      
+      // Remove notifications for deleted room (async, non-blocking)
+      setTimeout(async () => {
+        try {
+          const { notificationService } = await import('./notificationService');
+          await notificationService.removeNotificationsForRoom(id);
+        } catch (error) {
+          console.error('Failed to remove notifications for deleted room:', error);
+        }
+      }, 100);
       
       return true;
     } catch (error) {
