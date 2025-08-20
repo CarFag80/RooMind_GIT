@@ -382,7 +382,6 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                                        settings.quietHours.end === option.end;
                       
                       return (
-                        <TouchableOpacity
                           key={`${option.start}-${option.end}`}
                           style={[
                             styles.timeRangeOption,
