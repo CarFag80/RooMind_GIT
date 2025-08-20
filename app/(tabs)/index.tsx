@@ -272,9 +272,26 @@ export default function RoomsScreen() {
     setUnreadCount(notificationService.getUnreadCount());
   }, []);
 
+  // Update unread count periodically
+  useEffect(() => {
+    const updateUnreadCount = () => {
+      setUnreadCount(notificationService.getUnreadCount());
+    };
+
+    // Update immediately
+    updateUnreadCount();
+
+    // Update every 30 seconds
+    const interval = setInterval(updateUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       loadRooms();
+      // Update unread count when screen comes into focus
+      setUnreadCount(notificationService.getUnreadCount());
     }, [loadRooms])
   );
 
