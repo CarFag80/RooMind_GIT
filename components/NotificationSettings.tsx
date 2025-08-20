@@ -37,10 +37,10 @@ const TIME_CATEGORIES = [
 ];
 
 const QUIET_HOURS_OPTIONS = [
-  { start: '08:00', end: '12:00', label: '8:00 - 12:00 (Mattina)' },
-  { start: '12:00', end: '18:00', label: '12:00 - 18:00 (Pomeriggio)' },
-  { start: '18:00', end: '23:00', label: '18:00 - 23:00 (Sera)' },
-  { start: '23:00', end: '08:00', label: '23:00 - 8:00 (Notte)' },
+  { start: '08:00', end: '12:00', label: '8:00 - 12:00' },
+  { start: '12:00', end: '18:00', label: '12:00 - 18:00' },
+  { start: '18:00', end: '23:00', label: '18:00 - 23:00' },
+  { start: '23:00', end: '08:00', label: '23:00 - 8:00' },
 ];
 
 export default function NotificationSettings({ visible, onClose }: NotificationSettingsProps) {
