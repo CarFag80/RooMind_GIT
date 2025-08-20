@@ -22,6 +22,48 @@ export default function RootLayout() {
         // Initialize notification service globally
         await notificationService.initialize();
         console.log('🔔 Notification service initialized globally');
+        
+        // Register service worker for background notifications
+        if (Platform.OS === 'web' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('🔧 Service Worker registered:', registration);
+            
+            // Setup message listener for service worker communication
+            navigator.serviceWorker.addEventListener('message', (event) => {
+              if (event.data.type === 'GET_NOTIFICATION_DATA') {
+                const settings = notificationService.getSettings();
+                const history = notificationService.getHistory();
+                event.ports[0].postMessage({ settings, history });
+              } else if (event.data.type === 'UPDATE_NOTIFICATION_DATA') {
+                // Handle notification updates from service worker
+                console.log('📱 Notification data updated by service worker');
+              }
+            });
+            
+            // Request persistent notification permission
+            if ('Notification' in window && Notification.permission === 'granted') {
+              // Register for background sync if supported
+              if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                registration.sync.register('background-notification-check');
+                console.log('🔄 Background sync registered');
+              }
+              
+              // Register for periodic sync if supported (experimental)
+              if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) {
+                const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+                if (status.state === 'granted') {
+                  await registration.periodicSync.register('notification-check', {
+                    minInterval: 5 * 60 * 1000 // 5 minutes
+                  });
+                  console.log('⏰ Periodic sync registered');
+                }
+              }
+            }
+          } catch (error) {
+            console.error('❌ Service Worker registration failed:', error);
+          }
+        }
       } catch (e) {
         console.warn('App preparation error:', e);
       } finally {

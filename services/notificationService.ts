@@ -398,8 +398,8 @@ class NotificationService {
       // Send push notification if enabled and permission granted
       if (this.settings.pushEnabled && Platform.OS === 'web' && typeof window !== 'undefined') {
         if (Notification.permission === 'granted') {
-          new Notification('🏨 RooMind - Notifiche Abilitate', {
-            body: 'Perfetto! Ora riceverai promemoria automatici per check-in, check-out e valutazioni dei tuoi soggiorni.',
+          const notificationOptions = {
+            body: notification.message,
             icon: '/icons/icon-192x192.png',
             badge: '/icons/icon-96x96.png',
             tag: notification.id,
@@ -408,9 +408,34 @@ class NotificationService {
               roomId: notification.roomId,
               type: notification.type,
               isTest: isTestNotification
+            },
+            actions: [
+              {
+                action: 'open',
+                title: 'Apri Camera'
+              },
+              {
+                action: 'dismiss', 
+                title: 'Chiudi'
+              }
+            ]
+          };
+          
+          // Try to use service worker notification first (for background support)
+          if ('serviceWorker' in navigator) {
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              await registration.showNotification(notification.title, notificationOptions);
+              console.log('🔔 Service Worker notification sent:', notification.title);
+            } catch (swError) {
+              console.warn('Service Worker notification failed, using direct notification:', swError);
+              new Notification(notification.title, notificationOptions);
             }
-          });
-          console.log('🎉 Welcome notification sent successfully');
+          } else {
+            new Notification(notification.title, notificationOptions);
+          }
+          
+          console.log(`🔔 Push notification sent: ${notification.title}${isTestNotification ? ' (TEST)' : ''}`);
           
           if (isTestNotification) {
             console.log('🧪 TEST NOTIFICATION SENT:', notification.title);
@@ -422,7 +447,6 @@ class NotificationService {
         console.log('📱 Push notification skipped (disabled):', notification.title);
       }
 
-      console.log(`📱 Notification processed: ${notification.title}${isTestNotification ? ' (TEST)' : ''}`);
     } catch (error) {
       console.error('Failed to send push notification:', error);
     }
