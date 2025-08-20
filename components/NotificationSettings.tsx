@@ -37,10 +37,10 @@ const TIME_CATEGORIES = [
 ];
 
 const QUIET_HOURS_OPTIONS = [
-  { start: '22:00', end: '08:00', label: '22:00 - 8:00' },
-  { start: '23:00', end: '07:00', label: '23:00 - 7:00' },
-  { start: '00:00', end: '08:00', label: '00:00 - 8:00' },
-  { start: '21:00', end: '09:00', label: '21:00 - 9:00' },
+  { start: '08:00', end: '12:00', label: '8:00 - 12:00 (Mattina)' },
+  { start: '12:00', end: '18:00', label: '12:00 - 18:00 (Pomeriggio)' },
+  { start: '18:00', end: '23:00', label: '18:00 - 23:00 (Sera)' },
+  { start: '23:00', end: '08:00', label: '23:00 - 8:00 (Notte)' },
 ];
 
 export default function NotificationSettings({ visible, onClose }: NotificationSettingsProps) {
@@ -157,6 +157,30 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
     };
     await saveSettings(newSettings);
   }, [settings, saveSettings]);
+
+  const getAvailableQuietHours = useCallback(() => {
+    if (!settings) return QUIET_HOURS_OPTIONS;
+    
+    // Filter out the option that matches the preferred time
+    return QUIET_HOURS_OPTIONS.filter(option => {
+      const preferredTime = settings.preferredTime;
+      
+      // Map preferred times to their ranges
+      const timeRanges = {
+        '09:00': { start: '08:00', end: '12:00' }, // Mattina
+        '15:00': { start: '12:00', end: '18:00' }, // Pomeriggio
+        '20:00': { start: '18:00', end: '23:00' }, // Sera
+      };
+      
+      const preferredRange = timeRanges[preferredTime as keyof typeof timeRanges];
+      
+      // If no preferred range or "Sempre" is selected, show all options
+      if (!preferredRange) return true;
+      
+      // Filter out conflicting time ranges
+      return !(option.start === preferredRange.start && option.end === preferredRange.end);
+    });
+  }, [settings]);
 
   const getUnreadCount = useCallback(() => {
     return notificationService.getUnreadCount();
@@ -357,7 +381,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
 
                 {settings.quietHours.enabled && (
                   <View style={styles.quietHoursGrid}>
-                    {QUIET_HOURS_OPTIONS.map((option) => {
+                    {getAvailableQuietHours().map((option) => {
                       const isSelected = settings.quietHours.start === option.start && 
                                        settings.quietHours.end === option.end;
                       
@@ -379,6 +403,14 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                         </TouchableOpacity>
                       );
                     })}
+                    
+                    {getAvailableQuietHours().length === 0 && (
+                      <View style={styles.noOptionsContainer}>
+                        <Text style={styles.noOptionsText}>
+                          Nessuna fascia disponibile. L'orario preferito selezionato non può essere impostato come ore silenziose.
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -583,5 +615,17 @@ const styles = StyleSheet.create({
   },
   quietHoursOptionTextSelected: {
     color: '#FFFFFF',
+  },
+  noOptionsContainer: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  noOptionsText: {
+    fontSize: 14,
+    color: '#F57C00',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
