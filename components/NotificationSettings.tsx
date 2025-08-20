@@ -13,25 +13,25 @@ const TIME_CATEGORIES = [
   {
     category: 'Mattina',
     times: [
-      { value: '08:00', label: '8:00 - 12:00' },
+      { value: '08:00', label: '8:00 - 12:00', range: { start: '08:00', end: '12:00' } },
     ]
   },
   {
     category: 'Pomeriggio',
     times: [
-      { value: '14:00', label: '12:00 - 18:00' },
+      { value: '12:00', label: '12:00 - 18:00', range: { start: '12:00', end: '18:00' } },
     ]
   },
   {
     category: 'Sera',
     times: [
-      { value: '20:00', label: '18:00 - 23:00' },
+      { value: '18:00', label: '18:00 - 23:00', range: { start: '18:00', end: '23:00' } },
     ]
   },
   {
     category: 'Sempre',
     times: [
-      { value: '09:00', label: 'Qualsiasi orario' },
+      { value: 'anytime', label: 'Qualsiasi orario', range: null },
     ]
   }
 ];
@@ -134,7 +134,19 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
   const handleTimeChange = useCallback(async (time: string) => {
     if (!settings) return;
     
-    const newSettings = { ...settings, preferredTime: time };
+    let newSettings = { ...settings, preferredTime: time };
+    
+    // Se viene selezionato "Qualsiasi orario", disabilita automaticamente le ore silenziose
+    if (time === 'anytime') {
+      newSettings = {
+        ...newSettings,
+        quietHours: {
+          ...newSettings.quietHours,
+          enabled: false
+        }
+      };
+    }
+    
     await saveSettings(newSettings);
   }, [settings, saveSettings]);
 
@@ -161,24 +173,24 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
   const getAvailableQuietHours = useCallback(() => {
     if (!settings) return QUIET_HOURS_OPTIONS;
     
-    // Filter out the option that matches the preferred time
+    // Se è selezionato "Qualsiasi orario", non mostrare opzioni per ore silenziose
+    if (settings.preferredTime === 'anytime') {
+      return [];
+    }
+    
+    // Trova la fascia oraria corrispondente all'orario preferito selezionato
+    const selectedTimeOption = TIME_CATEGORIES
+      .flatMap(category => category.times)
+      .find(option => option.value === settings.preferredTime);
+    
+    if (!selectedTimeOption || !selectedTimeOption.range) {
+      return QUIET_HOURS_OPTIONS;
+    }
+    
+    // Filtra le opzioni che corrispondono esattamente alla fascia selezionata
     return QUIET_HOURS_OPTIONS.filter(option => {
-      const preferredTime = settings.preferredTime;
-      
-      // Map preferred times to their ranges
-      const timeRanges = {
-        '09:00': { start: '08:00', end: '12:00' }, // Mattina
-        '15:00': { start: '12:00', end: '18:00' }, // Pomeriggio
-        '20:00': { start: '18:00', end: '23:00' }, // Sera
-      };
-      
-      const preferredRange = timeRanges[preferredTime as keyof typeof timeRanges];
-      
-      // If no preferred range or "Sempre" is selected, show all options
-      if (!preferredRange) return true;
-      
-      // Filter out conflicting time ranges
-      return !(option.start === preferredRange.start && option.end === preferredRange.end);
+      return !(option.start === selectedTimeOption.range.start && 
+               option.end === selectedTimeOption.range.end);
     });
   }, [settings]);
 
@@ -364,6 +376,11 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                     </View>
                     <View>
                       <Text style={styles.settingTitle}>Ore Silenziose</Text>
+                      {settings.preferredTime === 'anytime' && (
+                        <Text style={styles.settingSubtitle}>
+                          Disabilitato con "Qualsiasi orario"
+                        </Text>
+                      )}
                     </View>
                   </View>
                   <Switch
@@ -371,7 +388,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                     onValueChange={handleQuietHoursToggle}
                     trackColor={{ false: '#E7E0EC', true: '#E8DEF8' }}
                     thumbColor={settings.quietHours.enabled ? '#6750A4' : '#79747E'}
-                    disabled={saving}
+                    disabled={saving || settings.preferredTime === 'anytime'}
                   />
                 </View>
 
@@ -403,7 +420,10 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                     {getAvailableQuietHours().length === 0 && (
                       <View style={styles.noOptionsContainer}>
                         <Text style={styles.noOptionsText}>
-                          Nessuna fascia disponibile. L'orario preferito selezionato non può essere impostato come ore silenziose.
+                          {settings.preferredTime === 'anytime' 
+                            ? 'Le ore silenziose sono disabilitate quando è selezionato "Qualsiasi orario".'
+                            : 'Nessuna fascia disponibile. L\'orario preferito selezionato non può essere impostato come ore silenziose.'
+                          }
                         </Text>
                       </View>
                     )}
