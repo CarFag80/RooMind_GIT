@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Info, Trash2, Download, Upload, Database, CircleHelp as HelpCircle, Shield, RotateCcw } from 'lucide-react-native';
+import { Info, Trash2, Download, Upload, Database, CircleHelp as HelpCircle, Shield, RotateCcw, Bell } from 'lucide-react-native';
 import { RoomStorage } from '@/services/storage';
 import { Room } from '@/types/room';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
