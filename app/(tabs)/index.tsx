@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Users, Crown, CreditCard as Edit3, Building, Hash, ArrowRight } from 'lucide-react-native';
+import { Chrome as Home, Users, Crown, CreditCard as Edit3, Building, Hash, ArrowRight, Bell } from 'lucide-react-native';
 import TripleRoomIcon from '@/components/TripleRoomIcon';
 import { RoomStorage } from '@/services/storage';
 import { Room } from '@/types/room';
