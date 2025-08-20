@@ -491,7 +491,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>RooMind v1.6</Text>
+          <Text style={styles.footerText}>RooMind v1.7</Text>
           <Text style={styles.footerSubtext}>Le tue camere, sempre con te</Text>
         </View>
       </ScrollView>
