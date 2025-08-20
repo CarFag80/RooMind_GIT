@@ -330,32 +330,28 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Orario Preferito</Text>
                 
-                <View style={styles.timeCategoriesContainer}>
-                  {TIME_CATEGORIES.map((category) => (
-                    <View key={category.category} style={styles.timeCategory}>
-                      <Text style={styles.timeCategoryTitle}>{category.category}</Text>
-                      <View style={styles.timeGrid}>
-                        {category.times.map((option) => (
-                          <TouchableOpacity
-                            key={option.value}
-                            style={[
-                              styles.timeOption,
-                              settings.preferredTime === option.value && styles.timeOptionSelected
-                            ]}
-                            onPress={() => handleTimeChange(option.value)}
-                            disabled={saving}>
-                            <Clock size={14} color={settings.preferredTime === option.value ? '#FFFFFF' : '#6750A4'} />
-                            <Text style={[
-                              styles.timeOptionText,
-                              settings.preferredTime === option.value && styles.timeOptionTextSelected
-                            ]}>
-                              {option.label}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  ))}
+                <View style={styles.timeOptionsGrid}>
+                  {TIME_CATEGORIES.flatMap(category => category.times).map((option) => {
+                    const isSelected = settings.preferredTime === option.value;
+                    
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        style={[
+                          styles.timeRangeOption,
+                          isSelected && styles.timeRangeOptionSelected
+                        ]}
+                        onPress={() => handleTimeChange(option.value)}
+                        disabled={saving}>
+                        <Text style={[
+                          styles.timeRangeOptionText,
+                          isSelected && styles.timeRangeOptionTextSelected
+                        ]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
@@ -380,27 +376,28 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
                 </View>
 
                 {settings.quietHours.enabled && (
-                  <View style={styles.quietHoursGrid}>
+                  <View style={styles.timeOptionsGrid}>
                     {getAvailableQuietHours().map((option) => {
                       const isSelected = settings.quietHours.start === option.start && 
                                        settings.quietHours.end === option.end;
                       
                       return (
                         <TouchableOpacity
-                          key={`${option.start}-${option.end}`}
-                          style={[
-                            styles.quietHoursOption,
-                            isSelected && styles.quietHoursOptionSelected
-                          ]}
-                          onPress={() => handleQuietHoursChange(option.start, option.end)}
-                          disabled={saving}>
-                          <Text style={[
-                            styles.quietHoursOptionText,
-                            isSelected && styles.quietHoursOptionTextSelected
-                          ]}>
-                            {option.label}
-                          </Text>
-                        </TouchableOpacity>
+                      <TouchableOpacity
+                        key={`${option.start}-${option.end}`}
+                        style={[
+                          styles.timeRangeOption,
+                          isSelected && styles.timeRangeOptionSelected
+                        ]}
+                        onPress={() => handleQuietHoursChange(option.start, option.end)}
+                        disabled={saving}>
+                        <Text style={[
+                          styles.timeRangeOptionText,
+                          isSelected && styles.timeRangeOptionTextSelected
+                        ]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
                       );
                     })}
                     
@@ -554,48 +551,11 @@ const styles = StyleSheet.create({
   timeCategoriesContainer: {
     gap: 16,
   },
-  timeCategory: {
-    marginBottom: 8,
-  },
-  timeCategoryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6750A4',
-    marginBottom: 8,
-  },
-  timeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  timeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E8DEF8',
-    gap: 6,
-  },
-  timeOptionSelected: {
-    backgroundColor: '#6750A4',
-    borderColor: '#6750A4',
-  },
-  timeOptionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6750A4',
-  },
-  timeOptionTextSelected: {
-    color: '#FFFFFF',
-  },
-  quietHoursGrid: {
+  timeOptionsGrid: {
     marginTop: 12,
     gap: 8,
   },
-  quietHoursOption: {
+  timeRangeOption: {
     backgroundColor: '#F7F2FA',
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -604,16 +564,16 @@ const styles = StyleSheet.create({
     borderColor: '#E8DEF8',
     alignItems: 'center',
   },
-  quietHoursOptionSelected: {
+  timeRangeOptionSelected: {
     backgroundColor: '#6750A4',
     borderColor: '#6750A4',
   },
-  quietHoursOptionText: {
+  timeRangeOptionText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#6750A4',
   },
-  quietHoursOptionTextSelected: {
+  timeRangeOptionTextSelected: {
     color: '#FFFFFF',
   },
   noOptionsContainer: {
