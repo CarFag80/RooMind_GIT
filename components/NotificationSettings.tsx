@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
 import { Bell, BellOff, Clock, Moon, Smartphone, Check, X } from 'lucide-react-native';
-import { notificationService, NotificationSettings } from '@/services/notificationService';
+import { notificationService, NotificationSettings as NotificationSettingsType } from '@/services/notificationService';
 import InfoModal from './InfoModal';
 
 interface NotificationSettingsProps {
@@ -29,7 +29,7 @@ const QUIET_HOURS_OPTIONS = [
 ];
 
 export default function NotificationSettings({ visible, onClose }: NotificationSettingsProps) {
-  const [settings, setSettings] = useState<NotificationSettings | null>(null);
+  const [settings, setSettings] = useState<NotificationSettingsType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +56,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
     }
   }, [visible, loadSettings]);
 
-  const saveSettings = useCallback(async (newSettings: NotificationSettings) => {
+  const saveSettings = useCallback(async (newSettings: NotificationSettingsType) => {
     setSaving(true);
     try {
       await notificationService.saveSettings(newSettings);
@@ -109,7 +109,7 @@ export default function NotificationSettings({ visible, onClose }: NotificationS
     await saveSettings(newSettings);
   }, [settings, saveSettings]);
 
-  const handleToggleReminderType = useCallback(async (type: keyof NotificationSettings, enabled: boolean) => {
+  const handleToggleReminderType = useCallback(async (type: keyof NotificationSettingsType, enabled: boolean) => {
     if (!settings) return;
     
     const newSettings = { ...settings, [type]: enabled };
