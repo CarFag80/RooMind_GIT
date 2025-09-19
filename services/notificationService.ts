@@ -65,12 +65,7 @@ class NotificationService {
     try {
       console.log('🚀 Initializing NotificationService...');
       await this.loadSettings();
-      console.log('⚙️ Settings loaded:', this.settings);
       await this.loadHistory();
-      console.log('📚 History loaded:', {
-        totalNotifications: this.history.notifications.length,
-        unsentNotifications: this.history.notifications.filter(n => !n.isSent).length
-      });
       
       // Load all rooms and reschedule notifications
       await this.rescheduleAllNotificationsFromStorage();
@@ -78,9 +73,7 @@ class NotificationService {
       this.startPeriodicCheck();
       this.isInitialized = true;
       
-      const unreadCount = this.getUnreadCount();
-      const pendingCount = this.getPendingCount();
-      console.log(`📱 NotificationService initialized - ${unreadCount} unread, ${pendingCount} pending`);
+      console.log('📱 NotificationService initialized');
     } catch (error) {
       console.error('Failed to initialize NotificationService:', error);
     }
@@ -217,12 +210,6 @@ class NotificationService {
     if (!this.settings.enabled) return;
 
     const now = new Date();
-    console.log(`🏨 Scheduling notifications for room ${room.roomNumber}:`, {
-      checkInDate: room.checkInDate,
-      checkOutDate: room.checkOutDate,
-      currentTime: now.toISOString()
-    });
-    
     const notifications: NotificationItem[] = [];
 
     // Check-in reminder (24 hours before)
@@ -230,13 +217,6 @@ class NotificationService {
       const checkInDate = new Date(room.checkInDate);
       const reminderDate = new Date(checkInDate.getTime() - 24 * 60 * 60 * 1000);
       const adjustedDate = this.adjustToPreferredTime(reminderDate);
-      
-      console.log(`📅 Check-in reminder calculation:`, {
-        checkInDate: checkInDate.toISOString(),
-        reminderDate: reminderDate.toISOString(),
-        adjustedDate: adjustedDate.toISOString(),
-        isInFuture: adjustedDate > now
-      });
       
       if (adjustedDate > now) {
         notifications.push({
@@ -250,9 +230,6 @@ class NotificationService {
           isSent: false,
           createdAt: new Date()
         });
-        console.log(`✅ Check-in notification scheduled for: ${adjustedDate.toISOString()}`);
-      } else {
-        console.log(`❌ Check-in notification NOT scheduled (date in past): ${adjustedDate.toISOString()}`);
       }
     }
 
@@ -261,13 +238,6 @@ class NotificationService {
       const checkOutDate = new Date(room.checkOutDate);
       const reminderDate = new Date(checkOutDate.getTime() - 24 * 60 * 60 * 1000);
       const adjustedDate = this.adjustToPreferredTime(reminderDate);
-      
-      console.log(`📅 Check-out reminder calculation:`, {
-        checkOutDate: checkOutDate.toISOString(),
-        reminderDate: reminderDate.toISOString(),
-        adjustedDate: adjustedDate.toISOString(),
-        isInFuture: adjustedDate > now
-      });
       
       if (adjustedDate > now) {
         notifications.push({
@@ -281,9 +251,6 @@ class NotificationService {
           isSent: false,
           createdAt: new Date()
         });
-        console.log(`✅ Check-out notification scheduled for: ${adjustedDate.toISOString()}`);
-      } else {
-        console.log(`❌ Check-out notification NOT scheduled (date in past): ${adjustedDate.toISOString()}`);
       }
     }
 
@@ -292,14 +259,6 @@ class NotificationService {
       const checkOutDate = new Date(room.checkOutDate);
       const reminderDate = new Date(checkOutDate.getTime() + 48 * 60 * 60 * 1000);
       const adjustedDate = this.adjustToPreferredTime(reminderDate);
-      
-      console.log(`📅 Rating reminder calculation:`, {
-        checkOutDate: checkOutDate.toISOString(),
-        reminderDate: reminderDate.toISOString(),
-        adjustedDate: adjustedDate.toISOString(),
-        isInFuture: adjustedDate > now,
-        hasRating: !!room.rating
-      });
       
       if (adjustedDate > now && !room.rating) {
         notifications.push({
@@ -313,24 +272,12 @@ class NotificationService {
           isSent: false,
           createdAt: new Date()
         });
-        console.log(`✅ Rating notification scheduled for: ${adjustedDate.toISOString()}`);
-      } else {
-        console.log(`❌ Rating notification NOT scheduled - reason:`, {
-          dateInPast: adjustedDate <= now,
-          hasRating: !!room.rating
-        });
       }
     }
 
     // Add to history and save
     this.history.notifications.push(...notifications);
     await this.saveHistory();
-
-    console.log(`📅 FINAL: Scheduled ${notifications.length} notifications for room ${room.roomNumber}`, {
-      totalNotifications: this.history.notifications.length,
-      pendingCount: this.getPendingCount(),
-      unreadCount: this.getUnreadCount()
-    });
   }
 
   private adjustToPreferredTime(date: Date): Date {
@@ -354,7 +301,6 @@ class NotificationService {
   private isInQuietHours(date: Date): boolean {
     // Se è selezionato "qualsiasi orario", non ci sono ore silenziose
     if (!this.settings.quietHours.enabled || this.settings.preferredTime === 'anytime') {
-      console.log('🔇 Quiet hours check: DISABLED (anytime or disabled)');
       return false;
     }
 
@@ -368,12 +314,9 @@ class NotificationService {
     const startTime = startHour * 60 + startMin;
     const endTime = endHour * 60 + endMin;
 
-    const isQuiet = startTime <= endTime 
+    return startTime <= endTime 
       ? (currentTime >= startTime && currentTime <= endTime)
       : (currentTime >= startTime || currentTime <= endTime);
-    
-    console.log(`🔇 Quiet hours check: ${isQuiet} (current: ${hours}:${minutes.toString().padStart(2, '0')}, quiet: ${this.settings.quietHours.start}-${this.settings.quietHours.end})`);
-    return isQuiet;
   }
 
   async checkPendingNotifications(): Promise<NotificationItem[]> {
@@ -385,10 +328,6 @@ class NotificationService {
         new Date(notification.scheduledDate) <= now &&
         !this.isInQuietHours(now)
     );
-
-    if (pendingNotifications.length > 0) {
-      console.log(`🔔 Sending ${pendingNotifications.length} pending notifications`);
-    }
 
     for (const notification of pendingNotifications) {
       // Always mark as sent and add to history, send push only if enabled
@@ -405,8 +344,6 @@ class NotificationService {
 
   private async sendPushNotification(notification: NotificationItem): Promise<void> {
     try {
-      const isTestNotification = notification.title.includes('🧪 TEST');
-      
       // Send push notification if enabled and permission granted
       if (this.settings.pushEnabled && Platform.OS === 'web' && typeof window !== 'undefined') {
         if (Notification.permission === 'granted') {
@@ -418,8 +355,7 @@ class NotificationService {
             requireInteraction: true,
             data: {
               roomId: notification.roomId,
-              type: notification.type,
-              isTest: isTestNotification
+              type: notification.type
             },
             actions: [
               {
@@ -447,16 +383,8 @@ class NotificationService {
             new Notification(notification.title, notificationOptions);
           }
           
-          console.log(`🔔 Push notification sent: ${notification.title}${isTestNotification ? ' (TEST)' : ''}`);
-          
-          if (isTestNotification) {
-            console.log('🧪 TEST NOTIFICATION SENT:', notification.title);
-          }
-        } else {
-          console.log('📱 Push notification skipped (no permission):', notification.title);
+          console.log(`🔔 Push notification sent: ${notification.title}`);
         }
-      } else {
-        console.log('📱 Push notification skipped (disabled):', notification.title);
       }
 
     } catch (error) {
@@ -543,9 +471,7 @@ class NotificationService {
 
   getPendingCount(): number {
     const now = new Date();
-    const pendingCount = this.history.notifications.filter(n => !n.isSent && n.scheduledDate > now).length;
-    console.log(`📊 Pending notifications count: ${pendingCount}`);
-    return pendingCount;
+    return this.history.notifications.filter(n => !n.isSent && n.scheduledDate > now).length;
   }
 
   async rescheduleAllNotifications(rooms: Room[]): Promise<void> {
