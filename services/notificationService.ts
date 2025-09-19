@@ -81,26 +81,6 @@ class NotificationService {
       const unreadCount = this.getUnreadCount();
       const pendingCount = this.getPendingCount();
       console.log(`📱 NotificationService initialized - ${unreadCount} unread, ${pendingCount} pending`);
-      
-      // Add a test notification for immediate testing
-      if (this.settings.enabled && this.settings.pushEnabled) {
-        console.log('🧪 Adding test notification for immediate verification...');
-        const testNotification: NotificationItem = {
-          id: `test-${Date.now()}`,
-          roomId: 'test-room',
-          type: 'check-in',
-          title: '🧪 TEST - Notifica di Prova',
-          message: 'Questa è una notifica di test per verificare il funzionamento del sistema.',
-          scheduledDate: new Date(Date.now() + 5000), // 5 seconds from now
-          isRead: false,
-          isSent: false,
-          createdAt: new Date()
-        };
-        
-        this.history.notifications.push(testNotification);
-        await this.saveHistory();
-        console.log('🧪 Test notification scheduled for 5 seconds from now');
-      }
     } catch (error) {
       console.error('Failed to initialize NotificationService:', error);
     }
@@ -398,8 +378,6 @@ class NotificationService {
 
   async checkPendingNotifications(): Promise<NotificationItem[]> {
     const now = new Date();
-    console.log(`🔍 Checking pending notifications at: ${now.toISOString()}`);
-    console.log(`📊 Total notifications in history: ${this.history.notifications.length}`);
     
     const pendingNotifications = this.history.notifications.filter(
       notification => 
@@ -408,32 +386,8 @@ class NotificationService {
         !this.isInQuietHours(now)
     );
 
-    console.log(`📋 Found ${pendingNotifications.length} pending notifications to send`);
-    
-    // Debug: mostra solo le notifiche che dovrebbero essere inviate
     if (pendingNotifications.length > 0) {
-      console.log('🚀 NOTIFICATIONS TO SEND:');
-      pendingNotifications.forEach((n, index) => {
-        console.log(`  ${index + 1}. ${n.type}: ${n.title}`);
-        console.log(`     📅 Scheduled: ${new Date(n.scheduledDate).toISOString()}`);
-      });
-    } else {
-      // Mostra solo le prime 3 notifiche per debug
-      console.log('🔍 SAMPLE ANALYSIS (first 3 notifications):');
-      this.history.notifications.slice(0, 3).forEach((notification, index) => {
-        const scheduledDate = new Date(notification.scheduledDate);
-        const isInFuture = scheduledDate > now;
-        const isInQuietHours = this.isInQuietHours(now);
-        
-        console.log(`  ${index + 1}. ${notification.type} - ${notification.title}`);
-        console.log(`     📅 Scheduled: ${scheduledDate.toISOString()}`);
-        console.log(`     ⏰ Current:   ${now.toISOString()}`);
-        console.log(`     🔮 Future: ${isInFuture}`);
-        console.log(`     📤 Sent: ${notification.isSent}`);
-        console.log(`     🔇 Quiet hours: ${isInQuietHours}`);
-        console.log(`     ✅ Should send: ${!notification.isSent && scheduledDate <= now && !isInQuietHours}`);
-        console.log('     ---');
-      });
+      console.log(`🔔 Sending ${pendingNotifications.length} pending notifications`);
     }
 
     for (const notification of pendingNotifications) {
@@ -444,7 +398,6 @@ class NotificationService {
 
     if (pendingNotifications.length > 0) {
       await this.saveHistory();
-      console.log(`✅ Processed ${pendingNotifications.length} notifications`);
     }
 
     return pendingNotifications;
@@ -516,17 +469,15 @@ class NotificationService {
       clearInterval(this.checkInterval);
     }
 
-    // Check every 5 seconds for immediate testing
+    // Check every 5 minutes for production
     this.checkInterval = setInterval(() => {
-      console.log('⏰ Periodic check triggered');
       this.checkPendingNotifications();
-    }, 5 * 1000); // 5 secondi per test immediati
+    }, 5 * 60 * 1000); // 5 minutes for production
 
-    // Initial check after 2 seconds
+    // Initial check after 30 seconds
     setTimeout(() => {
-      console.log('🔍 Initial notification check starting...');
       this.checkPendingNotifications();
-    }, 2000);
+    }, 30000);
   }
 
   stopPeriodicCheck(): void {

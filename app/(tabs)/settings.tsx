@@ -418,12 +418,6 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Debug & Test</Text>
-          
-          <NotificationTest />
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Informazioni</Text>
           
           <TouchableOpacity 
