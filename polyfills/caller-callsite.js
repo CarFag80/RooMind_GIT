@@ -2,20 +2,7 @@
 module.exports = function callerCallsite(depth) {
   depth = depth || 0;
   
-  try {
-    // Tenta di usare callsites se disponibile
-    const callsites = require('callsites');
-    const stack = callsites();
-    const callsite = stack && stack[depth + 1];
-    
-    if (callsite && typeof callsite.getFileName === 'function') {
-      return callsite;
-    }
-  } catch (e) {
-    // Ignora errori e usa il fallback
-  }
-  
-  // Fallback: restituisce sempre un oggetto valido
+  // Restituisce sempre un oggetto valido per l'ambiente web
   return {
     getFileName: function() { return null; },
     getLineNumber: function() { return null; },
