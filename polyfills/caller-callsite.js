@@ -1,5 +1,5 @@
 // Polyfill per ambiente Web: evita crash su "callerCallsite() is undefined"
-module.exports = function callerCallsite(depth) {
+function callerCallsite(depth) {
   depth = depth || 0;
   
   // Restituisce sempre un oggetto valido per l'ambiente web
@@ -15,4 +15,8 @@ module.exports = function callerCallsite(depth) {
     isEval: function() { return false; },
     isConstructor: function() { return false; }
   };
-};
+}
+
+// Esporta sia come default che come named export per compatibilità
+module.exports = callerCallsite;
+module.exports.callerCallsite = callerCallsite;
