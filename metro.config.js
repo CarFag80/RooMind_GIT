@@ -6,6 +6,10 @@ const config = getDefaultConfig(__dirname);
 // Configure resolver to use local polyfill for caller-callsite
 config.resolver = {
   ...config.resolver,
+  nodeModulesPaths: [
+    path.resolve(__dirname, 'node_modules'),
+    __dirname,
+  ],
   extraNodeModules: {
     ...(config.resolver?.extraNodeModules ?? {}),
     '@': path.resolve(__dirname, '.'),
