@@ -8,6 +8,7 @@ config.resolver = {
   ...config.resolver,
   alias: {
     ...(config.resolver?.alias ?? {}),
+    '@': path.resolve(__dirname, '.'),
     'caller-callsite': path.resolve(__dirname, 'polyfills/caller-callsite.js'),
   },
   extraNodeModules: {
