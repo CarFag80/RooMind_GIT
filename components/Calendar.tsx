@@ -170,45 +170,45 @@ export default function Calendar({
   }, [mode, onDateSelect, onRangeSelect, startDate, endDate]);
 
   const getDayStyle = useCallback((day: CalendarDay) => {
-    const styles = [dayStyles.day];
+    const dayStylesArray = [dayStyles.day];
     
     if (!day.isCurrentMonth) {
-      styles.push(dayStyles.dayOtherMonth);
+      dayStylesArray.push(dayStyles.dayOtherMonth);
     }
     
     if (day.isDisabled) {
-      styles.push(dayStyles.dayDisabled);
+      dayStylesArray.push(dayStyles.dayDisabled);
     } else if (day.isRangeStart || day.isRangeEnd) {
-      styles.push(dayStyles.dayRangeEnd);
+      dayStylesArray.push(dayStyles.dayRangeEnd);
     } else if (day.isSelected) {
-      styles.push(dayStyles.daySelected);
+      dayStylesArray.push(dayStyles.daySelected);
     } else if (day.isInRange) {
-      styles.push(dayStyles.dayInRange);
+      dayStylesArray.push(dayStyles.dayInRange);
     } else if (day.isToday) {
-      styles.push(dayStyles.dayToday);
+      dayStylesArray.push(dayStyles.dayToday);
     }
     
-    return styles;
+    return dayStylesArray;
   }, []);
 
   const getDayTextStyle = useCallback((day: CalendarDay) => {
-    const styles = [dayStyles.dayText];
+    const textStylesArray = [dayStyles.dayText];
     
     if (!day.isCurrentMonth) {
-      styles.push(dayStyles.dayTextOtherMonth);
+      textStylesArray.push(dayStyles.dayTextOtherMonth);
     }
     
     if (day.isDisabled) {
-      styles.push(dayStyles.dayTextDisabled);
+      textStylesArray.push(dayStyles.dayTextDisabled);
     } else if (day.isSelected || day.isRangeStart || day.isRangeEnd) {
-      styles.push(dayStyles.dayTextSelected);
+      textStylesArray.push(dayStyles.dayTextSelected);
     } else if (day.isInRange) {
-      styles.push(dayStyles.dayTextInRange);
+      textStylesArray.push(dayStyles.dayTextInRange);
     } else if (day.isToday) {
-      styles.push(dayStyles.dayTextToday);
+      textStylesArray.push(dayStyles.dayTextToday);
     }
     
-    return styles;
+    return textStylesArray;
   }, []);
 
   const monthTitle = `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;

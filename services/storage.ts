@@ -194,8 +194,8 @@ export class RoomStorage {
       if ('pricePerNight' in updates) {
         if (updates.pricePerNight === undefined) {
           // Remove price and currency
-          delete updatedRoom.pricePerNight;
-          delete updatedRoom.currency;
+          updatedRoom.pricePerNight = undefined;
+          updatedRoom.currency = undefined;
         } else {
           // Set price and ensure currency exists
           updatedRoom.pricePerNight = updates.pricePerNight;

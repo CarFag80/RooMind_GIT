@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen'
+import * as SplashScreen from 'expo-splash-screen';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { notificationService } from '@/services/notificationService';
 
@@ -31,40 +31,41 @@ export default function RootLayout() {
                 window.location.hostname.includes('webcontainer') ||
                 window.location.hostname.includes('bolt.new')) {
               console.log('🚫 Service Worker skipped: StackBlitz environment detected');
-              return;
+              // Don't return, continue with app initialization
             }
-            
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('🔧 Service Worker registered:', registration);
-            
-            // Setup message listener for service worker communication
-            navigator.serviceWorker.addEventListener('message', (event) => {
-              if (event.data.type === 'GET_NOTIFICATION_DATA') {
-                const settings = notificationService.getSettings();
-                const history = notificationService.getHistory();
-                event.ports[0].postMessage({ settings, history });
-              } else if (event.data.type === 'UPDATE_NOTIFICATION_DATA') {
-                // Handle notification updates from service worker
-                console.log('📱 Notification data updated by service worker');
-              }
-            });
-            
-            // Request persistent notification permission
-            if ('Notification' in window && Notification.permission === 'granted') {
-              // Register for background sync if supported
-              if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-                registration.sync.register('background-notification-check');
-                console.log('🔄 Background sync registered');
-              }
+            else {
+              const registration = await navigator.serviceWorker.register('/sw.js');
+              console.log('🔧 Service Worker registered:', registration);
               
-              // Register for periodic sync if supported (experimental)
-              if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) {
-                const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
-                if (status.state === 'granted') {
-                  await registration.periodicSync.register('notification-check', {
-                    minInterval: 5 * 60 * 1000 // 5 minutes
-                  });
-                  console.log('⏰ Periodic sync registered');
+              // Setup message listener for service worker communication
+              navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data.type === 'GET_NOTIFICATION_DATA') {
+                  const settings = notificationService.getSettings();
+                  const history = notificationService.getHistory();
+                  event.ports[0].postMessage({ settings, history });
+                } else if (event.data.type === 'UPDATE_NOTIFICATION_DATA') {
+                  // Handle notification updates from service worker
+                  console.log('📱 Notification data updated by service worker');
+                }
+              });
+              
+              // Request persistent notification permission
+              if ('Notification' in window && Notification.permission === 'granted') {
+                // Register for background sync if supported
+                if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                  registration.sync.register('background-notification-check');
+                  console.log('🔄 Background sync registered');
+                }
+                
+                // Register for periodic sync if supported (experimental)
+                if ('serviceWorker' in navigator && 'periodicSync' in window.ServiceWorkerRegistration.prototype) {
+                  const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+                  if (status.state === 'granted') {
+                    await registration.periodicSync.register('notification-check', {
+                      minInterval: 5 * 60 * 1000 // 5 minutes
+                    });
+                    console.log('⏰ Periodic sync registered');
+                  }
                 }
               }
             }

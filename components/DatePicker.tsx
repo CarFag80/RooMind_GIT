@@ -274,41 +274,6 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#79747E',
   },
-  // Web-specific styles
-  webDateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#79747E',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    minHeight: 56,
-    position: 'relative',
-  },
-  webCalendarIcon: {
-    marginRight: 12,
-  },
-  webDateInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1C1B1F',
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    outlineWidth: 0,
-  },
-  webDateDisplay: {
-    position: 'absolute',
-    right: 16,
-    fontSize: 14,
-    color: '#6750A4',
-    fontWeight: '500',
-    backgroundColor: '#E8DEF8',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
