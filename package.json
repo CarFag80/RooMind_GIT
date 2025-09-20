@@ -38,8 +38,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.45",
-    "@types/node": "^24.3.0",
-    "caller-callsite": "^2.0.0"
+    "@types/node": "^24.3.0"
   },
   "overrides": {
     "caller-callsite": "file:./polyfills/caller-callsite.js"
