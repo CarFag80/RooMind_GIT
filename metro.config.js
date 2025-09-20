@@ -12,7 +12,7 @@ config.resolver = {
   ],
   extraNodeModules: {
     ...(config.resolver?.extraNodeModules ?? {}),
-    '@': path.resolve(__dirname, '.'),
+    '@': __dirname,
     'caller-callsite': path.resolve(__dirname, 'polyfills/caller-callsite.js'),
   },
 };
