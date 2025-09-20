@@ -8,8 +8,7 @@
     "build:web": "expo export --platform web --output-dir dist",
     "build": "expo export --platform web --output-dir dist",
     "preview": "npx serve dist",
-    "lint": "expo lint",
-    "postinstall": "cat > node_modules/caller-callsite/index.js << 'EOF'\n'use strict';\n\n// Patch per ambiente web: evita crash quando callsites() non è disponibile\nmodule.exports = function (depth) {\n  try {\n    const callsites = require('callsites');\n    const cs = callsites();\n    const callsite = cs[depth + 1];\n    // Assicurati che venga sempre restituito un oggetto valido\n    return callsite || {\n      getFileName: () => null\n    };\n  } catch (e) {\n    return {\n      getFileName: () => null\n    };\n  }\n};\nEOF"
+    "lint": "expo lint"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
