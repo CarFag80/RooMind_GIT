@@ -41,6 +41,7 @@
     "@types/node": "^24.3.0"
   },
   "overrides": {
-    "caller-callsite": "file:./polyfills/caller-callsite.js"
+    "caller-callsite": "file:./polyfills/caller-callsite.js",
+    "**/caller-callsite": "file:./polyfills/caller-callsite.js"
   }
 }
