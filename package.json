@@ -42,6 +42,5 @@
   },
   "overrides": {
     "caller-callsite": "file:./polyfills/caller-callsite.js",
-    "**/caller-callsite": "file:./polyfills/caller-callsite.js"
   }
 }
