@@ -1,0 +1,23 @@
+diff --git a/node_modules/caller-callsite/index.js b/node_modules/caller-callsite/index.js
+index e69de29..1234567 100644
+--- a/node_modules/caller-callsite/index.js
++++ b/node_modules/caller-callsite/index.js
+@@ -1,5 +1,13 @@
+ 'use strict';
+ 
+-module.exports = function (depth) {
+-	var callsites = require('callsites');
+-	return callsites()[depth + 1];
+-};
++// Patch per ambiente web: se callsites non è disponibile, restituisci un oggetto fittizio
++module.exports = function (depth) {
++  try {
++    const callsites = require('callsites');
++    const cs = callsites();
++    return cs[depth + 1];
++  } catch (e) {
++    return {
++      getFileName: () => null
++    };
++  }
++};
