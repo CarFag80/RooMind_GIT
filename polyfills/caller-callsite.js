@@ -1,4 +1,4 @@
-// Polyfill per ambiente Web: evita l'errore "callerCallsite is undefined"
+// Polyfill per ambiente Web: evita crash su "callerCallsite() is undefined"
 module.exports = function callerCallsite() {
   return {
     getFileName: () => null
