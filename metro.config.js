@@ -8,7 +8,6 @@ config.resolver = {
   ...config.resolver,
   nodeModulesPaths: [
     path.resolve(__dirname, 'node_modules'),
-    __dirname,
   ],
   extraNodeModules: {
     ...(config.resolver?.extraNodeModules ?? {}),
