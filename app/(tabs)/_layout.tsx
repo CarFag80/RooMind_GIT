@@ -125,7 +125,6 @@ export default function TabLayout() {
           alignItems: 'center',
           justifyContent: 'center',
           paddingVertical: 8,
-          minHeight: 56,
           minHeight: 60, // Minimo per accessibilità touch
           maxWidth: (screenData.width - (config.paddingHorizontal * 2)) / 4,
         },
