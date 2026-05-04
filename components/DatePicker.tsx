@@ -135,47 +135,6 @@ export default function DatePicker({
     }
   }, [onDateChange]);
 
-  const handleWebDateChange = React.useCallback((dateString: string) => {
-    const formattedInput = formatInputWithSeparators(dateString);
-    setInputValue(formattedInput);
-    
-    if (!formattedInput) {
-      return;
-    }
-    
-    const expectedLength = isItalianLocale() ? 10 : 10; // Both formats are 10 chars
-    const expectedSeparator = isItalianLocale() ? '/' : '-';
-    
-    if (formattedInput.length === expectedLength && formattedInput.includes(expectedSeparator)) {
-      const parsedDate = parseInputDate(formattedInput);
-      if (parsedDate) {
-        onDateChange(parsedDate);
-      }
-    }
-  }, [formatInputWithSeparators, parseInputDate, onDateChange]);
-
-  const formatInputWithSeparators = React.useCallback((input: string) => {
-    const numbersOnly = input.replace(/\D/g, '');
-    
-    if (isItalianLocale()) {
-      if (numbersOnly.length <= 2) {
-        return numbersOnly;
-      } else if (numbersOnly.length <= 4) {
-        return `${numbersOnly.slice(0, 2)}/${numbersOnly.slice(2)}`;
-      } else {
-        return `${numbersOnly.slice(0, 2)}/${numbersOnly.slice(2, 4)}/${numbersOnly.slice(4, 8)}`;
-      }
-    } else {
-      if (numbersOnly.length <= 4) {
-        return numbersOnly;
-      } else if (numbersOnly.length <= 6) {
-        return `${numbersOnly.slice(0, 4)}-${numbersOnly.slice(4)}`;
-      } else {
-        return `${numbersOnly.slice(0, 4)}-${numbersOnly.slice(4, 6)}-${numbersOnly.slice(6, 8)}`;
-      }
-    }
-  }, [isItalianLocale]);
-
   const openPicker = React.useCallback(() => {
     setShowCalendar(true);
   }, []);

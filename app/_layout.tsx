@@ -16,9 +16,6 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         // Initialize notification service globally
         await notificationService.initialize();
         console.log('🔔 Notification service initialized globally');
