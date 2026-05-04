@@ -93,6 +93,30 @@ export default function RootLayout() {
     };
   }, []);
 
+  // Re-check pending notifications when the tab becomes visible again
+  // (user switched tab / minimised browser / returned from another app).
+  // This makes notifications appear within ~1s of reopening instead of waiting
+  // for the 5-minute interval to tick.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        notificationService.checkPendingNotifications().catch((err) => {
+          console.warn('Visibility notification check failed:', err);
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', onVisibilityChange);
+    };
+  }, []);
+
   useEffect(() => {
     // PWA setup only on web
     if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof document !== 'undefined') {

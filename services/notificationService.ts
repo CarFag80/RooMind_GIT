@@ -402,10 +402,11 @@ class NotificationService {
       this.checkPendingNotifications();
     }, 5 * 60 * 1000); // 5 minutes for production
 
-    // Initial check after 30 seconds
+    // Immediate check at startup (was: 30s delay).
+    // Small 500ms delay lets storage/async init settle before first read.
     setTimeout(() => {
       this.checkPendingNotifications();
-    }, 30000);
+    }, 500);
   }
 
   stopPeriodicCheck(): void {
