@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  EXPO_USE_LIGHTNINGCSS = "false"
 
 # PWA and manifest files
 [[headers]]
