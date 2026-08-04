@@ -23,9 +23,7 @@ export default function TabLayout() {
     
     // Calcolo base altezza tab bar
     const baseHeight = Platform.OS === 'ios' ? 50 : 60;
-    // On web, add extra space so the tab bar sits above the "Made in Bolt" badge
-    const badgeOffset = Platform.OS === 'web' ? 44 : 0;
-    const totalHeight = baseHeight + safeBottom + 16 + badgeOffset;
+    const totalHeight = baseHeight + safeBottom + 16;
     
     // Configurazioni responsive basate su breakpoint reali
     if (width <= 320) {
@@ -109,7 +107,7 @@ export default function TabLayout() {
           paddingBottom: Math.max(insets.bottom, 8),
           paddingHorizontal: config.paddingHorizontal,
           position: 'absolute',
-          bottom: 0,
+          bottom: Platform.OS === 'web' ? 36 : 0,
           left: 0,
           right: 0,
           elevation: 8,
