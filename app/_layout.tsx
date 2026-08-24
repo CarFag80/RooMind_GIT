@@ -18,7 +18,6 @@ export default function RootLayout() {
       try {
         // Initialize notification service globally
         await notificationService.initialize();
-        console.log('🔔 Notification service initialized globally');
         
         // Register service worker for background notifications
         if (Platform.OS === 'web' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -27,12 +26,10 @@ export default function RootLayout() {
             if (window.location.hostname.includes('stackblitz') || 
                 window.location.hostname.includes('webcontainer') ||
                 window.location.hostname.includes('bolt.new')) {
-              console.log('🚫 Service Worker skipped: StackBlitz environment detected');
-              // Don't return, continue with app initialization
+              // Skip service worker in StackBlitz environment
             }
             else {
               const registration = await navigator.serviceWorker.register('/sw.js');
-              console.log('🔧 Service Worker registered:', registration);
               
               // Setup message listener for service worker communication
               navigator.serviceWorker.addEventListener('message', (event) => {
@@ -42,7 +39,6 @@ export default function RootLayout() {
                   event.ports[0].postMessage({ settings, history });
                 } else if (event.data.type === 'UPDATE_NOTIFICATION_DATA') {
                   // Handle notification updates from service worker
-                  console.log('📱 Notification data updated by service worker');
                 }
               });
               
@@ -51,7 +47,6 @@ export default function RootLayout() {
                 // Register for background sync if supported
                 if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
                   registration.sync.register('background-notification-check');
-                  console.log('🔄 Background sync registered');
                 }
                 
                 // Register for periodic sync if supported (experimental)
@@ -59,9 +54,8 @@ export default function RootLayout() {
                   const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
                   if (status.state === 'granted') {
                     await registration.periodicSync.register('notification-check', {
-                      minInterval: 5 * 60 * 1000 // 5 minutes
+                      minInterval: 5 * 60 * 1000
                     });
-                    console.log('⏰ Periodic sync registered');
                   }
                 }
               }

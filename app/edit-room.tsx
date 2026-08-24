@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Chrome as Home, Users, Crown, Save, ArrowLeft, CircleAlert as AlertCircle, Star, Euro, DollarSign } from 'lucide-react-native';
+import { Chrome as Home, Users, Crown, Save, ArrowLeft, CircleAlert as AlertCircle, Euro, DollarSign } from 'lucide-react-native';
 import { ChevronDown } from 'lucide-react-native';
 import TripleRoomIcon from '@/components/TripleRoomIcon';
 import { RoomStorage } from '@/services/storage';
@@ -121,7 +121,6 @@ export default function EditRoomScreen() {
           }
         });
         setModalVisible(true);
-        router.back();
       }
     } catch (error) {
       console.error('Errore nel caricamento della camera:', error);
@@ -135,7 +134,6 @@ export default function EditRoomScreen() {
         }
       });
       setModalVisible(true);
-      router.back();
     }
   }, [roomId]);
 
@@ -198,9 +196,6 @@ export default function EditRoomScreen() {
     setLoading(true);
 
     try {
-      console.log('💾 INIZIO SALVATAGGIO MODIFICHE');
-      console.log('💰 Prezzo input:', pricePerNight);
-      console.log('💱 Valuta input:', currency);
       
       // Prepare updates object with explicit field handling
       const updates: Partial<Omit<Room, 'id' | 'createdAt'>> = {
@@ -218,23 +213,17 @@ export default function EditRoomScreen() {
       
       // Handle price and currency explicitly
       const trimmedPrice = pricePerNight?.trim();
-      console.log('💰 Prezzo trimmed:', trimmedPrice);
       
       if (trimmedPrice && !isNaN(parseFloat(trimmedPrice))) {
         updates.pricePerNight = parseFloat(trimmedPrice);
         updates.currency = currency;
-        console.log('✅ Prezzo valido:', updates.pricePerNight, updates.currency);
       } else {
         // If price is empty or invalid, remove both price and currency
         updates.pricePerNight = undefined;
         updates.currency = undefined;
-        console.log('❌ Prezzo rimosso');
       }
       
-      console.log('📝 Updates finali:', updates);
-
       const updatedRoom = await RoomStorage.updateRoom(room.id, updates);
-      console.log('✅ Room aggiornata:', updatedRoom);
       
       setModalContent({
         title: 'Modifiche Salvate!',

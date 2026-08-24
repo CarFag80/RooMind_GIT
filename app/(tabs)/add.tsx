@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chrome as Home, Users, Crown, Save, RotateCcw, CircleAlert as AlertCircle, Euro, DollarSign, ChevronDown } from 'lucide-react-native';
 import { RoomStorage } from '@/services/storage';

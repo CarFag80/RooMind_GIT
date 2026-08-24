@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Info, Trash2, Download, Upload, Database, CircleHelp as HelpCircle, Shield, RotateCcw, Bell } from 'lucide-react-native';
 import { RoomStorage } from '@/services/storage';
@@ -237,9 +237,7 @@ export default function SettingsScreen() {
     setLoading(true);
     
     try {
-      console.log('🗑️ Inizio eliminazione dati...');
       await RoomStorage.clearAll();
-      console.log('✅ Dati eliminati con successo');
       
       // Update local state immediately
       setRoomCount(0);
@@ -262,7 +260,7 @@ export default function SettingsScreen() {
       }, 300);
       
     } catch (error) {
-      console.error('💥 Errore nell\'eliminazione:', error);
+      console.error('Errore nell\'eliminazione:', error);
       setModalContent({
         title: 'Errore Eliminazione',
         message: 'Si è verificato un errore durante l\'eliminazione. Riprova.',
@@ -307,11 +305,6 @@ export default function SettingsScreen() {
         showInfo('exportSuccess');
       } else {
         // For mobile platforms, copy to clipboard as fallback
-        // In a real mobile app, you'd use expo-sharing or expo-file-system
-        console.log('=== DATI ESPORTATI ===');
-        console.log(jsonString);
-        console.log('=== FINE ESPORTAZIONE ===');
-        
         showInfo('exportMobile');
       }
     } catch (error) {

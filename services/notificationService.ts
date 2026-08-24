@@ -63,7 +63,6 @@ class NotificationService {
     if (this.isInitialized) return;
 
     try {
-      console.log('🚀 Initializing NotificationService...');
       await this.loadSettings();
       await this.loadHistory();
       
@@ -72,8 +71,6 @@ class NotificationService {
       
       this.startPeriodicCheck();
       this.isInitialized = true;
-      
-      console.log('📱 NotificationService initialized');
     } catch (error) {
       console.error('Failed to initialize NotificationService:', error);
     }
@@ -95,7 +92,6 @@ class NotificationService {
         }
         
         await this.saveHistory();
-        console.log(`🔄 Rescheduled notifications for ${rooms.length} rooms`);
       }
     } catch (error) {
       console.error('Failed to reschedule notifications from storage:', error);
@@ -119,7 +115,6 @@ class NotificationService {
     try {
       this.settings = settings;
       await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-      console.log('💾 Notification settings saved');
     } catch (error) {
       console.error('Failed to save notification settings:', error);
       throw error;
@@ -163,27 +158,21 @@ class NotificationService {
     try {
       // Check if Notification API is supported
       if (!('Notification' in window)) {
-        console.warn('Browser does not support notifications');
         return false;
       }
 
       // Check current permission status
       if (Notification.permission === 'granted') {
-        console.log('Notification permission already granted');
         return true;
       }
 
       if (Notification.permission === 'denied') {
-        console.warn('Notification permission denied by user');
         return false;
       }
 
       // Request permission
-      console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
-      
-      console.log('Notification permission result:', permission);
-      
+
       if (permission === 'granted') {
         // Send a test notification to confirm it works
         setTimeout(() => {
@@ -374,7 +363,6 @@ class NotificationService {
             try {
               const registration = await navigator.serviceWorker.ready;
               await registration.showNotification(notification.title, notificationOptions);
-              console.log('🔔 Service Worker notification sent:', notification.title);
             } catch (swError) {
               console.warn('Service Worker notification failed, using direct notification:', swError);
               new Notification(notification.title, notificationOptions);
@@ -382,8 +370,6 @@ class NotificationService {
           } else {
             new Notification(notification.title, notificationOptions);
           }
-          
-          console.log(`🔔 Push notification sent: ${notification.title}`);
         }
       }
 
@@ -438,7 +424,7 @@ class NotificationService {
 
     const removedCount = initialCount - this.history.notifications.length;
     if (removedCount > 0) {
-      console.log(`🧹 Cleaned up ${removedCount} old notifications`);
+      await this.saveHistory();
     }
   }
 
@@ -451,7 +437,6 @@ class NotificationService {
     const removedCount = initialCount - this.history.notifications.length;
     if (removedCount > 0) {
       await this.saveHistory();
-      console.log(`🗑️ Removed ${removedCount} notifications for room ${roomId}`);
     }
   }
 
@@ -483,8 +468,6 @@ class NotificationService {
     for (const room of rooms) {
       await this.scheduleNotificationsForRoom(room);
     }
-    
-    console.log('🔄 Rescheduled notifications for all rooms');
   }
 
   destroy(): void {
