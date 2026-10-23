@@ -31,8 +31,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Configure Expo base URL for Pages only
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const config = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          config.expo.experiments = { ...config.expo.experiments, baseUrl: '/RooMind_GIT' };
+          fs.writeFileSync('app.json', JSON.stringify(config, null, 2) + '\n');
+          NODE
+
       - name: Build web app
         run: npm run build:web
+
+      - name: Verify exported JavaScript paths
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('dist/index.html', 'utf8');
+          if (!html.includes('/RooMind_GIT/_expo/') || /src=["']\/_expo\//.test(html)) {
+            throw new Error('Exported JavaScript does not use the GitHub Pages base URL');
+          }
+          NODE
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
