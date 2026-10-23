@@ -9,7 +9,7 @@ Un'app moderna per tenere traccia delle tue camere d'albergo durante i viaggi, c
 - **Date Soggiorno**: Traccia le date di check-in e check-out
 - **Tipologie Camera**: Singola, doppia, tripla, suite con icone dedicate
 - **Valutazioni**: Valuta i soggiorni passati con sistema a stelle
-- **Notifiche Promemoria**: Avvisi automatici per check-in, check-out e valutazione
+- **Notifiche Promemoria**: Avvisi automatici per check-in, check-out e valutazione. Le notifiche push sono disponibili su Web/PWA; su iOS e Android l'app offre il centro notifiche interno e la pianificazione in-app.
 - **Prezzo per Notte**: Supporto multi-valuta (EUR, USD, GBP, CHF, JPY)
 - **Storage Locale**: Tutti i dati salvati localmente sul dispositivo
 - **Multi-piattaforma**: Funziona su iOS, Android e Web
@@ -159,8 +159,6 @@ public/
 
 L'app non richiede variabili d'ambiente per funzionare. Tutti i dati sono salvati localmente.
 
-Un file `.env.example` e disponibile come riferimento per futura integrazione backend opzionale.
-
 ## Features
 
 ### Completate
@@ -171,7 +169,7 @@ Un file `.env.example` e disponibile come riferimento per futura integrazione ba
 - [x] Date range picker (check-in/check-out)
 - [x] Valutazioni a stelle per soggiorni passati
 - [x] Prezzo per notte con multi-valuta
-- [x] Notifiche promemoria (check-in, check-out, valutazione)
+- [x] Notifiche promemoria (check-in, check-out, valutazione) su Web/PWA
 - [x] Centro notifiche con cronologia
 - [x] Esportazione dati JSON
 - [x] Importazione dati JSON

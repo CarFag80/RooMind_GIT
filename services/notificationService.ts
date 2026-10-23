@@ -304,8 +304,8 @@ class NotificationService {
     const endTime = endHour * 60 + endMin;
 
     return startTime <= endTime 
-      ? (currentTime >= startTime && currentTime <= endTime)
-      : (currentTime >= startTime || currentTime <= endTime);
+      ? (currentTime >= startTime && currentTime < endTime)
+      : (currentTime >= startTime || currentTime < endTime);
   }
 
   async checkPendingNotifications(): Promise<NotificationItem[]> {
@@ -420,7 +420,6 @@ class NotificationService {
     );
 
     this.history.lastCleanup = new Date();
-    await this.saveHistory();
 
     const removedCount = initialCount - this.history.notifications.length;
     if (removedCount > 0) {
